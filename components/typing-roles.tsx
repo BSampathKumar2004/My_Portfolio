@@ -42,9 +42,9 @@ export function TypingRoles({ roles }: TypingRolesProps) {
   }, [displayText, isDeleting, roleIndex, roles]);
 
   return (
-    <div className="flex min-h-8 items-center text-lg font-medium text-slate-200 sm:text-xl">
+    <div className="flex min-h-8 items-center text-lg font-medium text-[color:var(--foreground)] sm:text-xl">
       <span>{displayText}</span>
-      <span className="ml-1 h-6 w-px animate-pulse bg-sky-300/80" />
+      <span className="ml-1 h-6 w-px animate-pulse bg-[color:var(--accent)]" />
     </div>
   );
 }

@@ -40,7 +40,7 @@ export function AboutStorySection({
               `+=${Math.max(window.innerHeight * distanceMultiplier, minDistance)}`,
             pin: true,
             pinSpacing: true,
-            scrub: true,
+            scrub: 0.95,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
@@ -71,8 +71,8 @@ export function AboutStorySection({
         };
       };
 
-      media.add("(min-width: 1024px)", () => buildTimeline(3.5, 2400));
-      media.add("(max-width: 1023px)", () => buildTimeline(2.8, 1800));
+      media.add("(min-width: 1024px)", () => buildTimeline(3.8, 2600));
+      media.add("(max-width: 1023px)", () => buildTimeline(3, 1900));
     }, sectionRef);
 
     return () => {
@@ -83,11 +83,11 @@ export function AboutStorySection({
 
   return (
     <div ref={sectionRef} className="relative">
-      <div className="mx-auto mb-8 flex w-fit rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.28em] text-slate-300">
+      <div className="theme-pill mx-auto mb-8 flex w-fit rounded-full px-4 py-2 text-xs uppercase tracking-[0.28em]">
         About
       </div>
 
-      <div className="relative flex min-h-[64vh] items-center justify-center overflow-hidden">
+      <div className="relative flex min-h-[68vh] items-center justify-center overflow-hidden">
         {steps.map((step, index) => (
           <div
             key={step.title}
@@ -97,10 +97,10 @@ export function AboutStorySection({
             className="absolute inset-0 flex items-center justify-center px-4"
           >
             <div className="mx-auto max-w-4xl text-center">
-              <h2 className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              <h2 className="text-balance text-4xl font-semibold tracking-[-0.04em] text-[color:var(--foreground-strong)] sm:text-5xl lg:text-[4.6rem] lg:leading-[0.98]">
                 {step.title}
               </h2>
-              <p className="text-balance mx-auto mt-6 max-w-3xl text-lg leading-9 text-slate-300 sm:text-xl">
+              <p className="text-balance mx-auto mt-7 max-w-3xl text-lg leading-9 text-[color:var(--foreground-soft)] sm:text-[1.35rem]">
                 {step.body}
               </p>
             </div>

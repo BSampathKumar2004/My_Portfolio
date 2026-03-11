@@ -37,7 +37,7 @@ export function CinematicStatementSection({
             trigger: sectionRef.current,
             start: "top 84%",
             end: "top 38%",
-            scrub: true,
+            scrub: 0.9,
           },
         },
       );
@@ -53,7 +53,7 @@ export function CinematicStatementSection({
             trigger: sectionRef.current,
             start: "top 72%",
             end: "top 42%",
-            scrub: true,
+            scrub: 0.85,
           },
         },
       );
@@ -70,7 +70,7 @@ export function CinematicStatementSection({
             trigger: sectionRef.current,
             start: "top bottom",
             end: "bottom top",
-            scrub: true,
+            scrub: 0.95,
           },
         },
       );
@@ -82,26 +82,27 @@ export function CinematicStatementSection({
   return (
     <section
       ref={sectionRef}
-      className="relative flex min-h-[76vh] items-center justify-center overflow-hidden py-10"
+      className="relative flex min-h-[82vh] items-center justify-center overflow-hidden py-14"
     >
       <div
         ref={glowRef}
-        className="pointer-events-none absolute inset-x-0 top-1/2 -z-10 mx-auto h-[24rem] w-[24rem] -translate-y-1/2 rounded-full bg-sky-400/10 blur-[120px] will-change-transform sm:h-[30rem] sm:w-[30rem]"
+        className="pointer-events-none absolute inset-x-0 top-1/2 -z-10 mx-auto h-[24rem] w-[24rem] -translate-y-1/2 rounded-full blur-[120px] will-change-transform sm:h-[30rem] sm:w-[30rem]"
+        style={{ backgroundColor: "var(--glow-primary)" }}
       />
 
       <div className="relative mx-auto max-w-5xl text-center">
-        <span className="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.32em] text-slate-300">
+        <span className="theme-pill inline-flex rounded-full px-4 py-2 text-xs uppercase tracking-[0.32em]">
           {statement.eyebrow}
         </span>
         <h2
           ref={titleRef}
-          className="text-balance mt-8 text-5xl font-semibold tracking-[-0.04em] text-white sm:text-6xl lg:text-[5.5rem] lg:leading-[0.95]"
+          className="text-balance mt-8 text-5xl font-semibold tracking-[-0.05em] text-[color:var(--foreground-strong)] sm:text-6xl lg:text-[5.8rem] lg:leading-[0.94]"
         >
           {statement.title}
         </h2>
         <p
           ref={bodyRef}
-          className="text-balance mx-auto mt-8 max-w-3xl text-lg leading-9 text-slate-300 sm:text-xl"
+          className="text-balance mx-auto mt-9 max-w-3xl text-lg leading-9 text-[color:var(--foreground-soft)] sm:text-xl"
         >
           {statement.description}
         </p>

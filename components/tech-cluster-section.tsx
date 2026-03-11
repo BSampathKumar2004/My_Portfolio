@@ -8,16 +8,19 @@ import type { TechItem } from "@/lib/portfolio-data";
 
 type TechClusterSectionProps = {
   techItems: TechItem[];
+  theme: "dark" | "light";
 };
 
 function ClusterScene({
   techItems,
   activeName,
   onHover,
+  theme,
 }: {
   techItems: TechItem[];
   activeName: string;
   onHover: (item: TechItem) => void;
+  theme: "dark" | "light";
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const positions = useMemo(
@@ -93,8 +96,8 @@ function ClusterScene({
                 <div
                   className={`pointer-events-none whitespace-nowrap rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.26em] backdrop-blur-md transition-all ${
                     isActive
-                      ? "border-white/18 bg-white/12 text-white"
-                      : "border-white/10 bg-slate-950/70 text-slate-300"
+                      ? "border-[color:var(--soft-border-strong)] bg-[color:var(--soft-surface-strong)] text-[color:var(--foreground-strong)]"
+                      : "border-[color:var(--soft-border)] bg-[color:var(--panel)] text-[color:var(--foreground-soft)]"
                   }`}
                 >
                   {tech.name}
@@ -107,33 +110,56 @@ function ClusterScene({
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.6, 0]}>
         <ringGeometry args={[2.5, 2.7, 64]} />
-        <meshBasicMaterial color="#1e293b" transparent opacity={0.7} />
+        <meshBasicMaterial
+          color={theme === "light" ? "#cbd5e1" : "#1e293b"}
+          transparent
+          opacity={0.7}
+        />
       </mesh>
       <Sparkles count={70} scale={[6, 6, 6]} size={2.4} speed={0.35} color="#60a5fa" />
     </>
   );
 }
 
-export function TechClusterSection({ techItems }: TechClusterSectionProps) {
+export function TechClusterSection({
+  techItems,
+  theme,
+}: TechClusterSectionProps) {
   const [activeTech, setActiveTech] = useState<TechItem>(techItems[0]);
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-center">
       <div className="glass-panel relative h-[420px] overflow-hidden p-0 sm:h-[520px]">
-        <div className="absolute left-6 top-6 z-10 rounded-full border border-white/10 bg-slate-950/70 px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-slate-300 backdrop-blur-md">
+        <div className="theme-pill absolute left-6 top-6 z-10 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.28em] backdrop-blur-md">
           Hover to inspect the stack
         </div>
         <Canvas camera={{ position: [0, 0, 7], fov: 42 }}>
-          <color attach="background" args={["#030712"]} />
-          <fog attach="fog" args={["#030712", 5, 10]} />
+          <color attach="background" args={[theme === "light" ? "#eff6ff" : "#030712"]} />
+          <fog
+            attach="fog"
+            args={[theme === "light" ? "#eff6ff" : "#030712", 5, 10]}
+          />
           <ambientLight intensity={0.95} />
-          <directionalLight position={[3, 4, 5]} intensity={2} color="#dbeafe" />
-          <pointLight position={[-4, 0, 2]} intensity={18} color="#38bdf8" />
-          <pointLight position={[4, 2, -2]} intensity={15} color="#22d3ee" />
+          <directionalLight
+            position={[3, 4, 5]}
+            intensity={theme === "light" ? 1.8 : 2}
+            color={theme === "light" ? "#bfdbfe" : "#dbeafe"}
+          />
+          <pointLight
+            position={[-4, 0, 2]}
+            intensity={theme === "light" ? 15 : 18}
+            color="#38bdf8"
+          />
+          <pointLight
+            position={[4, 2, -2]}
+            intensity={theme === "light" ? 13 : 15}
+            color="#22d3ee"
+          />
           <ClusterScene
             techItems={techItems}
             activeName={activeTech.name}
             onHover={setActiveTech}
+            theme={theme}
           />
         </Canvas>
       </div>
@@ -142,22 +168,22 @@ export function TechClusterSection({ techItems }: TechClusterSectionProps) {
         <div className="glass-panel p-6 sm:p-7">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
+              <p className="text-xs uppercase tracking-[0.28em] text-[color:var(--muted)]">
                 {activeTech.category}
               </p>
-              <h3 className="mt-3 text-2xl font-semibold text-white">
+              <h3 className="mt-3 text-2xl font-semibold text-[color:var(--foreground-strong)]">
                 {activeTech.name}
               </h3>
             </div>
             <span
-              className="h-4 w-4 rounded-full border border-white/20 shadow-[0_0_24px_rgba(96,165,250,0.3)]"
+              className="h-4 w-4 rounded-full border border-[color:var(--soft-border-strong)] shadow-[0_0_24px_rgba(96,165,250,0.3)]"
               style={{ backgroundColor: activeTech.color }}
             />
           </div>
-          <p className="mt-5 text-base leading-7 text-slate-300">
+          <p className="mt-5 text-base leading-7 text-[color:var(--foreground-soft)]">
             {activeTech.description}
           </p>
-          <p className="mt-4 rounded-2xl border border-white/8 bg-white/[0.03] p-4 text-sm leading-6 text-slate-400">
+          <p className="theme-surface mt-4 rounded-2xl p-4 text-sm leading-6 text-[color:var(--muted)]">
             {activeTech.detail}
           </p>
         </div>
@@ -172,8 +198,8 @@ export function TechClusterSection({ techItems }: TechClusterSectionProps) {
               onClick={() => setActiveTech(tech)}
               className={`rounded-full border px-4 py-2 text-sm transition-all ${
                 tech.name === activeTech.name
-                  ? "border-sky-300/30 bg-sky-300/10 text-sky-100"
-                  : "border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:text-white"
+                  ? "border-[color:var(--accent-border)] bg-[color:var(--accent-surface)] text-[color:var(--accent-text)]"
+                  : "border-[color:var(--soft-border)] bg-[color:var(--soft-surface)] text-[color:var(--foreground-soft)] hover:border-[color:var(--soft-border-strong)] hover:text-[color:var(--foreground-strong)]"
               }`}
             >
               {tech.name}

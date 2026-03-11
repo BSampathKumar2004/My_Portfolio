@@ -7,7 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
-  type MouseEvent,
+  type MouseEvent as ReactMouseEvent,
 } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
@@ -18,9 +18,11 @@ import {
   BriefcaseBusiness,
   Download,
   Mail,
+  MoonStar,
   Phone,
   ScrollText,
   Sparkles,
+  SunMedium,
   UserRound,
 } from "lucide-react";
 import {
@@ -62,8 +64,16 @@ function SceneFallback({ label }: { label: string }) {
   return (
     <div className="glass-panel flex h-[420px] items-center justify-center sm:h-[520px]">
       <div className="space-y-3 text-center">
-        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-slate-700 border-t-sky-300" />
-        <p className="text-sm uppercase tracking-[0.28em] text-slate-400">{label}</p>
+        <div
+          className="mx-auto h-12 w-12 animate-spin rounded-full border-2"
+          style={{
+            borderColor: "var(--soft-border)",
+            borderTopColor: "var(--accent)",
+          }}
+        />
+        <p className="text-sm uppercase tracking-[0.28em] text-[color:var(--muted)]">
+          {label}
+        </p>
       </div>
     </div>
   );
@@ -85,22 +95,27 @@ function ContactCard({
       href={href}
       target={href.startsWith("http") ? "_blank" : undefined}
       rel={href.startsWith("http") ? "noreferrer" : undefined}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -6, scale: 1.01 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
       className="glass-panel flex items-center gap-4 p-5"
     >
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sky-100">
+      <div className="theme-icon-panel rounded-2xl p-3">
         <Icon className="h-5 w-5" />
       </div>
       <div>
-        <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{label}</p>
-        <p className="mt-2 text-sm text-slate-200 sm:text-base">{value}</p>
+        <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
+          {label}
+        </p>
+        <p className="mt-2 text-sm text-[color:var(--foreground)] sm:text-base">
+          {value}
+        </p>
       </div>
     </motion.a>
   );
 }
 
 const lenisEasing = (t: number) => 1 - Math.pow(1 - t, 4);
+const THEME_STORAGE_KEY = "portfolio-theme";
 const heroParticles = [
   { top: "14%", left: "8%", size: "h-2 w-2", speed: -22, opacity: "opacity-55" },
   { top: "26%", left: "24%", size: "h-1.5 w-1.5", speed: -14, opacity: "opacity-40" },
@@ -110,12 +125,17 @@ const heroParticles = [
   { bottom: "16%", right: "8%", size: "h-2 w-2", speed: -24, opacity: "opacity-45" },
 ];
 
+type ThemeMode = "dark" | "light";
+
 export function PortfolioPage() {
   const rootRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
   const activeSectionRef = useRef("home");
   const [activeSection, setActiveSection] = useState("home");
+  const [theme, setTheme] = useState<ThemeMode>("dark");
+  const [isThemeReady, setIsThemeReady] = useState(false);
 
   const heroHighlights = useMemo(
     () => [
@@ -129,6 +149,45 @@ export function PortfolioPage() {
     () => (headerRef.current?.getBoundingClientRect().height ?? 72) + 18,
     [],
   );
+  const setActiveSectionIfNeeded = useCallback((sectionId: string) => {
+    if (activeSectionRef.current === sectionId) {
+      return;
+    }
+
+    activeSectionRef.current = sectionId;
+    setActiveSection(sectionId);
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const applyTheme = (nextTheme: ThemeMode) => {
+      root.dataset.theme = nextTheme;
+      root.style.colorScheme = nextTheme;
+      setTheme(nextTheme);
+    };
+
+    const initialTheme = root.dataset.theme === "light" ? "light" : "dark";
+    applyTheme(initialTheme);
+    setIsThemeReady(true);
+
+    const handleSystemChange = (event: MediaQueryListEvent) => {
+      const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+
+      if (storedTheme === "light" || storedTheme === "dark") {
+        return;
+      }
+
+      applyTheme(event.matches ? "dark" : "light");
+    };
+
+    mediaQuery.addEventListener("change", handleSystemChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleSystemChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (!rootRef.current) {
@@ -155,7 +214,37 @@ export function PortfolioPage() {
       lenis.raf(time * 1000);
     };
 
-    const handleLenisScroll = () => ScrollTrigger.update();
+    const progressTo = progressBarRef.current
+      ? gsap.quickTo(progressBarRef.current, "scaleX", {
+          duration: 0.18,
+          ease: "power2.out",
+        })
+      : null;
+    const opacityTo = progressBarRef.current
+      ? gsap.quickTo(progressBarRef.current, "opacity", {
+          duration: 0.2,
+          ease: "power2.out",
+        })
+      : null;
+
+    const handleLenisScroll = ({
+      progress,
+      scroll,
+    }: {
+      progress: number;
+      scroll: number;
+    }) => {
+      const clampedProgress = Math.max(0, Math.min(1, progress));
+
+      progressTo?.(clampedProgress);
+      opacityTo?.(clampedProgress > 0.005 ? 1 : 0);
+
+      if (scroll <= 24) {
+        setActiveSectionIfNeeded("home");
+      }
+
+      ScrollTrigger.update();
+    };
 
     lenis.on("scroll", handleLenisScroll);
     gsap.ticker.add(tick);
@@ -178,16 +267,16 @@ export function PortfolioPage() {
         .forEach((element) => {
           gsap.fromTo(
             element,
-            { opacity: 0, y: 36, force3D: true },
+            { opacity: 0, y: 44, force3D: true },
             {
               opacity: 1,
               y: 0,
               ease: "none",
               scrollTrigger: {
                 trigger: element,
-                start: "top 86%",
-                end: "top 64%",
-                scrub: true,
+                start: "top 88%",
+                end: "top 60%",
+                scrub: 0.85,
               },
             },
           );
@@ -202,7 +291,7 @@ export function PortfolioPage() {
             trigger: rootRef.current,
             start: "top top",
             end: "bottom top",
-            scrub: true,
+            scrub: 0.9,
           },
         });
       });
@@ -218,9 +307,9 @@ export function PortfolioPage() {
             ease: "none",
             scrollTrigger: {
               trigger: element,
-              start: "top 88%",
-              end: "top 38%",
-              scrub: true,
+              start: "top 90%",
+              end: "top 34%",
+              scrub: 0.95,
             },
           },
         );
@@ -235,7 +324,7 @@ export function PortfolioPage() {
             trigger: element,
             start: "top bottom",
             end: "bottom top",
-            scrub: true,
+            scrub: 0.95,
           },
         });
       });
@@ -251,12 +340,136 @@ export function PortfolioPage() {
             ease: "none",
             scrollTrigger: {
               trigger: element,
-              start: "top 90%",
-              end: "top 68%",
-              scrub: true,
+              start: "top 92%",
+              end: "top 64%",
+              scrub: 0.8,
             },
           },
         );
+      });
+
+      media.add("(hover: hover) and (pointer: fine)", () => {
+        const cleanups: Array<() => void> = [];
+
+        gsap.utils.toArray<HTMLElement>("[data-magnetic]").forEach((element) => {
+          const strength = Number(element.dataset.magneticStrength ?? 0.14);
+          const xTo = gsap.quickTo(element, "x", {
+            duration: 0.45,
+            ease: "power3.out",
+          });
+          const yTo = gsap.quickTo(element, "y", {
+            duration: 0.45,
+            ease: "power3.out",
+          });
+          const scaleTo = gsap.quickTo(element, "scale", {
+            duration: 0.45,
+            ease: "power3.out",
+          });
+
+          gsap.set(element, { force3D: true });
+
+          const handleMove = (event: MouseEvent) => {
+            const rect = element.getBoundingClientRect();
+            const offsetX = event.clientX - (rect.left + rect.width / 2);
+            const offsetY = event.clientY - (rect.top + rect.height / 2);
+
+            xTo(offsetX * strength);
+            yTo(offsetY * strength);
+            scaleTo(1.015);
+          };
+
+          const handleLeave = () => {
+            xTo(0);
+            yTo(0);
+            scaleTo(1);
+          };
+
+          element.addEventListener("mousemove", handleMove);
+          element.addEventListener("mouseleave", handleLeave);
+
+          cleanups.push(() => {
+            element.removeEventListener("mousemove", handleMove);
+            element.removeEventListener("mouseleave", handleLeave);
+            gsap.set(element, { clearProps: "x,y,scale" });
+          });
+        });
+
+        gsap.utils
+          .toArray<HTMLElement>("[data-cursor-reactive]")
+          .forEach((element) => {
+            const inner =
+              element.querySelector<HTMLElement>("[data-cursor-reactive-inner]") ??
+              element;
+            const intensity = Number(
+              element.dataset.cursorReactiveIntensity ?? 1,
+            );
+
+            const rotateXTo = gsap.quickTo(element, "rotationX", {
+              duration: 0.55,
+              ease: "power3.out",
+            });
+            const rotateYTo = gsap.quickTo(element, "rotationY", {
+              duration: 0.55,
+              ease: "power3.out",
+            });
+            const innerXTo = gsap.quickTo(inner, "x", {
+              duration: 0.55,
+              ease: "power3.out",
+            });
+            const innerYTo = gsap.quickTo(inner, "y", {
+              duration: 0.55,
+              ease: "power3.out",
+            });
+            const innerScaleTo = gsap.quickTo(inner, "scale", {
+              duration: 0.55,
+              ease: "power3.out",
+            });
+
+            gsap.set(element, {
+              transformPerspective: 1400,
+              transformOrigin: "center center",
+              force3D: true,
+            });
+            gsap.set(inner, { force3D: true });
+
+            const handleMove = (event: MouseEvent) => {
+              const rect = element.getBoundingClientRect();
+              const normalizedX =
+                ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+              const normalizedY =
+                ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+
+              rotateYTo(normalizedX * 4 * intensity);
+              rotateXTo(-normalizedY * 3.2 * intensity);
+              innerXTo(normalizedX * 8 * intensity);
+              innerYTo(normalizedY * 8 * intensity);
+              innerScaleTo(1.01);
+            };
+
+            const handleLeave = () => {
+              rotateXTo(0);
+              rotateYTo(0);
+              innerXTo(0);
+              innerYTo(0);
+              innerScaleTo(1);
+            };
+
+            element.addEventListener("mousemove", handleMove);
+            element.addEventListener("mouseleave", handleLeave);
+
+            cleanups.push(() => {
+              element.removeEventListener("mousemove", handleMove);
+              element.removeEventListener("mouseleave", handleLeave);
+              gsap.set(element, {
+                clearProps: "rotationX,rotationY,transformPerspective",
+              });
+              gsap.set(inner, { clearProps: "x,y,scale" });
+            });
+          });
+
+        return () => {
+          cleanups.forEach((cleanup) => cleanup());
+        };
       });
 
       const heroSection = document.querySelector<HTMLElement>("[data-hero-section]");
@@ -281,8 +494,8 @@ export function PortfolioPage() {
           scrollTrigger: {
             trigger: heroSection,
             start: "top top",
-            end: pin ? "+=42%" : "bottom top",
-            scrub: true,
+            end: pin ? "+=52%" : "bottom top",
+            scrub: 0.9,
             pin,
             pinSpacing: pin,
             anticipatePin: 1,
@@ -410,8 +623,8 @@ export function PortfolioPage() {
           scrollTrigger: {
             trigger: architectureSection,
             start: pin ? () => `top top+=${getPinnedOffset()}` : "top 78%",
-            end: pin ? "+=52%" : "bottom 60%",
-            scrub: true,
+            end: pin ? "+=58%" : "bottom 60%",
+            scrub: 0.9,
             pin,
             pinSpacing: pin,
             anticipatePin: 1,
@@ -459,15 +672,6 @@ export function PortfolioPage() {
       });
     }, rootRef);
 
-    const setActiveSectionIfNeeded = (sectionId: string) => {
-      if (activeSectionRef.current === sectionId) {
-        return;
-      }
-
-      activeSectionRef.current = sectionId;
-      setActiveSection(sectionId);
-    };
-
     const sections = Array.from(
       document.querySelectorAll<HTMLElement>("main section[id]"),
     );
@@ -499,7 +703,7 @@ export function PortfolioPage() {
       gsap.ticker.remove(tick);
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
-  }, [getPinnedOffset]);
+  }, [getPinnedOffset, setActiveSectionIfNeeded]);
 
   const getScrollOffset = () => {
     const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 0;
@@ -541,73 +745,129 @@ export function PortfolioPage() {
     });
   };
 
-  const handleNavClick = (event: MouseEvent<HTMLAnchorElement>, id: string) => {
+  const handleNavClick = (event: ReactMouseEvent<HTMLAnchorElement>, id: string) => {
     event.preventDefault();
     scrollToSection(id);
   };
 
+  const toggleTheme = () => {
+    const nextTheme: ThemeMode = theme === "dark" ? "light" : "dark";
+
+    document.documentElement.dataset.theme = nextTheme;
+    document.documentElement.style.colorScheme = nextTheme;
+    window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    setTheme(nextTheme);
+
+    requestAnimationFrame(() => {
+      ScrollTrigger.refresh();
+    });
+  };
+
   return (
     <div ref={rootRef} className="relative overflow-x-clip">
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-[70] h-[2px]">
+        <div className="theme-progress-track absolute inset-0" />
+        <div
+          ref={progressBarRef}
+          className="theme-progress-bar absolute inset-y-0 left-0 origin-left opacity-0"
+          style={{ width: "100%", transform: "scaleX(0)" }}
+        />
+      </div>
+
       <div
         data-parallax
         data-speed="-10"
-        className="pointer-events-none absolute left-[-12rem] top-24 -z-10 h-80 w-80 rounded-full bg-sky-500/12 blur-[140px] will-change-transform"
+        className="pointer-events-none absolute left-[-12rem] top-24 -z-10 h-80 w-80 rounded-full blur-[140px] will-change-transform"
+        style={{ backgroundColor: "var(--glow-primary)" }}
       />
       <div
         data-parallax
         data-speed="12"
-        className="pointer-events-none absolute right-[-12rem] top-[28rem] -z-10 h-[28rem] w-[28rem] rounded-full bg-cyan-400/8 blur-[160px] will-change-transform"
+        className="pointer-events-none absolute right-[-12rem] top-[28rem] -z-10 h-[28rem] w-[28rem] rounded-full blur-[160px] will-change-transform"
+        style={{ backgroundColor: "var(--glow-secondary)" }}
       />
-      <div className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.95),_rgba(2,6,23,1)),linear-gradient(180deg,_rgba(2,6,23,1)_0%,_rgba(2,6,23,0.98)_45%,_rgba(2,6,23,1)_100%)]" />
+      <div className="theme-page-backdrop pointer-events-none absolute inset-0 -z-20" />
 
       <header ref={headerRef} className="fixed inset-x-0 top-0 z-50">
-        <div className="mx-auto mt-4 flex max-w-7xl items-center justify-between gap-4 rounded-full border border-white/10 bg-slate-950/70 px-4 py-3 shadow-[0_20px_80px_rgba(2,8,23,0.45)] backdrop-blur-xl sm:px-6">
+        <div className="theme-header mx-auto mt-4 flex max-w-7xl items-center justify-between gap-4 rounded-full px-4 py-3 backdrop-blur-xl sm:px-6">
           <a
             href="#home"
             onClick={(event) => handleNavClick(event, "home")}
             className="text-left"
           >
-            <span className="block text-xs uppercase tracking-[0.28em] text-slate-500">
+            <span className="block text-xs uppercase tracking-[0.28em] text-[color:var(--muted)]">
               Portfolio
             </span>
-            <span className="text-sm font-medium text-slate-100 sm:text-base">
+            <span className="text-sm font-medium text-[color:var(--foreground-strong)] sm:text-base">
               Bandaru Sampath Kumar
             </span>
           </a>
 
           <nav className="hidden items-center gap-2 md:flex">
             {navItems.map((item) => (
-              <a
+              <motion.a
                 key={item.id}
                 href={`#${item.id}`}
                 onClick={(event) => handleNavClick(event, item.id)}
-                className={`rounded-full px-4 py-2 text-sm transition-colors ${
+                className={`theme-nav-chip relative rounded-full px-4 py-2 text-sm ${
                   activeSection === item.id
-                    ? "bg-white/10 text-white"
-                    : "text-slate-400 hover:text-white"
+                    ? "theme-nav-chip-active"
+                    : "theme-nav-chip-idle"
                 }`}
               >
+                {activeSection === item.id ? (
+                  <motion.span
+                    layoutId="active-nav-chip"
+                    className="absolute inset-0 -z-10 rounded-full bg-[color:var(--soft-surface-strong)]"
+                    transition={{
+                      type: "spring",
+                      stiffness: 420,
+                      damping: 34,
+                      mass: 0.72,
+                    }}
+                  />
+                ) : null}
                 {item.label}
-              </a>
+              </motion.a>
             ))}
           </nav>
 
-          <a
-            href="#contact"
-            onClick={(event) => handleNavClick(event, "contact")}
-            className="inline-flex items-center gap-2 rounded-full border border-sky-300/20 bg-sky-300/10 px-4 py-2 text-sm font-medium text-sky-100 transition-colors hover:bg-sky-300/15"
-          >
-            Contact
-            <ArrowRight className="h-4 w-4" />
-          </a>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="interactive-button theme-button-secondary inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isThemeReady && theme === "light" ? (
+                <SunMedium className="h-4 w-4" />
+              ) : (
+                <MoonStar className="h-4 w-4" />
+              )}
+              <span className="hidden sm:inline">
+                {isThemeReady ? (theme === "light" ? "Light" : "Dark") : "Theme"}
+              </span>
+            </button>
+
+            <a
+              href="#contact"
+              onClick={(event) => handleNavClick(event, "contact")}
+              data-magnetic
+              data-magnetic-strength="0.12"
+              className="interactive-button theme-button-accent inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
+            >
+              Contact
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 pb-24 pt-28 sm:px-8 lg:px-10">
+      <main className="mx-auto max-w-7xl px-6 pb-28 pt-32 sm:px-8 lg:px-10">
         <section
           id="home"
           data-hero-section
-          className="relative grid min-h-[92vh] items-center gap-14 overflow-hidden pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.78fr)]"
+          className="relative grid min-h-[94vh] items-center gap-16 overflow-hidden pt-14 lg:gap-20 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.78fr)]"
         >
           <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
             {heroParticles.map((particle, index) => (
@@ -615,30 +875,31 @@ export function PortfolioPage() {
                 key={`hero-particle-${index}`}
                 data-hero-particle
                 data-speed={particle.speed}
-                className={`absolute rounded-full bg-sky-200/80 blur-[1px] ${particle.size} ${particle.opacity} will-change-transform`}
+                className={`absolute rounded-full blur-[1px] ${particle.size} ${particle.opacity} will-change-transform`}
                 style={{
                   top: particle.top,
                   left: particle.left,
                   right: particle.right,
                   bottom: particle.bottom,
+                  backgroundColor: "var(--hero-particle)",
                 }}
               />
             ))}
           </div>
 
-          <div data-hero-copy className="max-w-2xl will-change-transform">
+          <div data-hero-copy className="max-w-2xl will-change-transform lg:pr-4">
             <div
               data-hero
               data-hero-badge
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.28em] text-slate-300"
+              className="theme-pill inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-[0.3em]"
             >
-              <Sparkles className="h-3.5 w-3.5 text-sky-200" />
+              <Sparkles className="h-3.5 w-3.5 text-[color:var(--accent)]" />
               Backend Engineer Portfolio
             </div>
             <h1
               data-hero
               data-hero-heading
-              className="mt-8 text-5xl font-semibold tracking-tight text-white sm:text-6xl xl:text-7xl"
+              className="mt-8 text-balance text-5xl font-semibold tracking-[-0.045em] text-[color:var(--foreground-strong)] sm:text-6xl xl:text-[5.25rem] xl:leading-[0.94]"
             >
               Bandaru Sampath Kumar
             </h1>
@@ -648,14 +909,14 @@ export function PortfolioPage() {
             <p
               data-hero
               data-hero-lead
-              className="mt-3 text-lg text-slate-300 sm:text-xl"
+              className="mt-3 text-lg text-[color:var(--foreground-soft)] sm:text-xl"
             >
               FastAPI | Backend Systems | AI Pipelines
             </p>
             <p
               data-hero
               data-hero-summary
-              className="mt-7 max-w-xl text-base leading-8 text-slate-300 sm:text-lg"
+              className="mt-8 max-w-lg text-base leading-8 text-[color:var(--foreground-soft)] sm:text-lg"
             >
               Python Backend Developer focused on building scalable backend
               systems, AI-powered document processing pipelines, and event-driven
@@ -666,7 +927,9 @@ export function PortfolioPage() {
               <button
                 type="button"
                 onClick={() => scrollToSection("projects")}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-medium text-slate-950 transition-transform hover:-translate-y-0.5"
+                data-magnetic
+                data-magnetic-strength="0.16"
+                className="interactive-button theme-button-primary inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium"
               >
                 View Projects
                 <ArrowRight className="h-4 w-4" />
@@ -674,7 +937,9 @@ export function PortfolioPage() {
               <a
                 href="/Bandaru-Sampath-Kumar-Resume.pdf"
                 download
-                className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-6 py-3 text-sm font-medium text-slate-100 transition-colors hover:border-white/20 hover:bg-white/[0.08]"
+                data-magnetic
+                data-magnetic-strength="0.14"
+                className="interactive-button theme-button-secondary inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium"
               >
                 Download Resume
                 <Download className="h-4 w-4" />
@@ -682,7 +947,9 @@ export function PortfolioPage() {
               <button
                 type="button"
                 onClick={() => scrollToSection("contact")}
-                className="inline-flex items-center gap-2 rounded-full border border-sky-300/20 bg-sky-300/10 px-6 py-3 text-sm font-medium text-sky-100 transition-colors hover:bg-sky-300/15"
+                data-magnetic
+                data-magnetic-strength="0.16"
+                className="interactive-button theme-button-accent inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium"
               >
                 Contact
                 <Mail className="h-4 w-4" />
@@ -692,14 +959,14 @@ export function PortfolioPage() {
             <div
               data-hero
               data-hero-highlights
-              className="mt-10 grid gap-3 sm:grid-cols-3"
+              className="mt-12 grid gap-4 sm:grid-cols-3"
             >
               {heroHighlights.map((highlight) => (
-                <div key={highlight.label} className="glass-panel p-4">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                <div key={highlight.label} className="glass-panel interactive-lift p-4 sm:p-5">
+                  <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
                     {highlight.label}
                   </p>
-                  <p className="mt-3 text-sm leading-6 text-slate-200">
+                  <p className="mt-3 text-sm leading-6 text-[color:var(--foreground)]">
                     {highlight.value}
                   </p>
                 </div>
@@ -709,10 +976,10 @@ export function PortfolioPage() {
             <button
               type="button"
               onClick={() => scrollToSection("about")}
-              className="mt-12 inline-flex items-center gap-3 text-sm uppercase tracking-[0.26em] text-slate-400 transition-colors hover:text-white"
+              className="mt-14 inline-flex items-center gap-3 text-sm uppercase tracking-[0.26em] text-[color:var(--muted)] transition-colors hover:text-[color:var(--foreground-strong)]"
             >
               Scroll to explore
-              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
+              <span className="theme-pill flex h-9 w-9 items-center justify-center rounded-full">
                 <ArrowRight className="h-4 w-4 rotate-90" />
               </span>
             </button>
@@ -736,28 +1003,28 @@ export function PortfolioPage() {
           <div
             data-reveal
             data-story-shell
-            className="mt-10 grid gap-4 sm:grid-cols-3"
+            className="mt-14 grid gap-5 sm:grid-cols-3"
           >
             {stats.map((stat) => (
               <motion.div
                 key={stat.label}
-                whileHover={{ y: -4 }}
+                whileHover={{ y: -6, scale: 1.01 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="glass-panel p-6"
+                className="glass-panel p-6 sm:p-7"
               >
-                <p className="text-3xl font-semibold text-white sm:text-4xl">
+                <p className="text-3xl font-semibold text-[color:var(--foreground-strong)] sm:text-4xl">
                   {typeof stat.value === "number" ? (
                     <CountUp value={stat.value} suffix={stat.suffix} />
                   ) : (
-                    <span className="bg-gradient-to-r from-white to-sky-200 bg-clip-text text-transparent">
+                    <span className="theme-accent-gradient">
                       {stat.valueText}
                     </span>
                   )}
                 </p>
-                <p className="mt-3 text-sm uppercase tracking-[0.24em] text-slate-500">
+                <p className="mt-3 text-sm uppercase tracking-[0.24em] text-[color:var(--muted)]">
                   {stat.label}
                 </p>
-                <p className="mt-4 text-sm leading-6 text-slate-300">
+                <p className="mt-4 text-sm leading-6 text-[color:var(--foreground-soft)]">
                   {stat.description}
                 </p>
               </motion.div>
@@ -774,8 +1041,8 @@ export function PortfolioPage() {
               title="An interactive backend toolkit centered around services, data, and automation."
               description="The stack below reflects the systems I use to design APIs, process documents, stream events, and operate backend workloads."
             />
-            <div data-depth="-4" className="mt-12">
-              <TechClusterSection techItems={techStack} />
+            <div data-depth="-4" className="mt-14">
+              <TechClusterSection techItems={techStack} theme={theme} />
             </div>
           </div>
         </section>
@@ -794,7 +1061,7 @@ export function PortfolioPage() {
             />
           </div>
 
-          <div className="mt-12">
+          <div className="mt-14">
             <ProjectsShowcase
               getPinnedOffset={getPinnedOffset}
               lenisRef={lenisRef}
@@ -812,15 +1079,15 @@ export function PortfolioPage() {
               data-reveal
               className="mx-auto max-w-4xl text-center will-change-transform"
             >
-              <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              <h2 className="text-balance text-4xl font-semibold tracking-[-0.035em] text-[color:var(--foreground-strong)] sm:text-5xl lg:text-[4.1rem] lg:leading-[0.98]">
                 System Architecture
               </h2>
-              <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
+              <p className="mx-auto mt-6 max-w-2xl text-balance text-base leading-8 text-[color:var(--foreground-soft)] sm:text-lg">
                 A high-level architecture of a scalable backend system designed for
                 AI-powered document processing and event-driven workflows.
               </p>
             </div>
-            <div className="mt-12">
+            <div className="mt-14">
               <ArchitectureShowcase />
             </div>
           </div>
@@ -831,18 +1098,20 @@ export function PortfolioPage() {
             data-story-shell
             className="grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,0.85fr)]"
           >
-            <div data-reveal className="glass-panel p-6 sm:p-8">
+            <div data-reveal className="glass-panel p-7 sm:p-9">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                  <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
                     Experience
                   </p>
-                  <h2 className="mt-4 text-3xl font-semibold text-white">
+                  <h2 className="mt-4 text-3xl font-semibold text-[color:var(--foreground-strong)]">
                     {experience.role}
                   </h2>
-                  <p className="mt-3 text-lg text-slate-300">{experience.company}</p>
+                  <p className="mt-3 text-lg text-[color:var(--foreground-soft)]">
+                    {experience.company}
+                  </p>
                 </div>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-200">
+                <span className="theme-pill rounded-full px-4 py-2 text-sm">
                   {experience.period}
                 </span>
               </div>
@@ -852,10 +1121,10 @@ export function PortfolioPage() {
                   <div
                     data-detail-card
                     key={item}
-                    className="flex items-start gap-4 rounded-2xl border border-white/8 bg-white/[0.03] p-4"
+                    className="theme-surface flex items-start gap-4 rounded-2xl p-4"
                   >
-                    <span className="mt-1 h-2.5 w-2.5 rounded-full bg-sky-300" />
-                    <p className="text-sm leading-7 text-slate-300 sm:text-base">
+                    <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[color:var(--accent)]" />
+                    <p className="text-sm leading-7 text-[color:var(--foreground-soft)] sm:text-base">
                       {item}
                     </p>
                   </div>
@@ -871,10 +1140,10 @@ export function PortfolioPage() {
 
         <section id="education" className="section-space">
           <div data-story-shell className="grid gap-6 lg:grid-cols-2">
-            <div data-reveal className="glass-panel p-6 sm:p-8">
-              <div className="flex items-center gap-3 text-sky-100">
+            <div data-reveal className="glass-panel p-7 sm:p-9">
+              <div className="flex items-center gap-3 text-[color:var(--accent-text)]">
                 <UserRound className="h-5 w-5" />
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
                   Education
                 </p>
               </div>
@@ -883,17 +1152,17 @@ export function PortfolioPage() {
                   <div
                     data-detail-card
                     key={item.title}
-                    className="rounded-2xl border border-white/8 bg-white/[0.03] p-4"
+                    className="theme-surface rounded-2xl p-4"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <h3 className="text-base font-semibold text-white sm:text-lg">
+                      <h3 className="text-base font-semibold text-[color:var(--foreground-strong)] sm:text-lg">
                         {item.title}
                       </h3>
-                      <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs uppercase tracking-[0.18em] text-slate-200">
+                      <span className="theme-pill rounded-full px-3 py-1 text-xs uppercase tracking-[0.18em]">
                         {item.score}
                       </span>
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-slate-300 sm:text-base">
+                    <p className="mt-3 text-sm leading-6 text-[color:var(--foreground-soft)] sm:text-base">
                       {item.institution}
                     </p>
                   </div>
@@ -901,10 +1170,10 @@ export function PortfolioPage() {
               </div>
             </div>
 
-            <div data-reveal className="glass-panel p-6 sm:p-8">
-              <div className="flex items-center gap-3 text-sky-100">
+            <div data-reveal className="glass-panel p-7 sm:p-9">
+              <div className="flex items-center gap-3 text-[color:var(--accent-text)]">
                 <ScrollText className="h-5 w-5" />
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
                   Certifications
                 </p>
               </div>
@@ -913,12 +1182,12 @@ export function PortfolioPage() {
                   <div
                     data-detail-card
                     key={certificate.title}
-                    className="rounded-2xl border border-white/8 bg-white/[0.03] p-4"
+                    className="theme-surface rounded-2xl p-4"
                   >
-                    <h3 className="text-base font-semibold text-white">
+                    <h3 className="text-base font-semibold text-[color:var(--foreground-strong)]">
                       {certificate.title}
                     </h3>
-                    <p className="mt-2 text-sm text-slate-300">
+                    <p className="mt-2 text-sm text-[color:var(--foreground-soft)]">
                       {certificate.issuer}
                     </p>
                   </div>
@@ -932,7 +1201,7 @@ export function PortfolioPage() {
           <div
             data-reveal
             data-story-shell
-            className="glass-panel overflow-hidden p-6 sm:p-8 lg:p-10"
+            className="glass-panel overflow-hidden p-7 sm:p-9 lg:p-11"
           >
             <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(320px,1fr)]">
               <div>
@@ -946,14 +1215,18 @@ export function PortfolioPage() {
                   <a
                     href="/Bandaru-Sampath-Kumar-Resume.pdf"
                     download
-                    className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-medium text-slate-950 transition-transform hover:-translate-y-0.5"
+                    data-magnetic
+                    data-magnetic-strength="0.14"
+                    className="interactive-button theme-button-primary inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium"
                   >
                     Download Resume
                     <Download className="h-4 w-4" />
                   </a>
                   <a
                     href="mailto:bandarusampath11@gmail.com"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-6 py-3 text-sm font-medium text-slate-100 transition-colors hover:border-white/20 hover:bg-white/[0.08]"
+                    data-magnetic
+                    data-magnetic-strength="0.14"
+                    className="interactive-button theme-button-secondary inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium"
                   >
                     Email Me
                     <Mail className="h-4 w-4" />

@@ -3,13 +3,137 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: dark;
   --background: #020617;
   --foreground: #e2e8f0;
+  --foreground-strong: #f8fafc;
+  --foreground-soft: #cbd5e1;
   --panel: rgba(15, 23, 42, 0.72);
+  --panel-gradient-start: rgba(15, 23, 42, 0.78);
+  --panel-gradient-end: rgba(2, 6, 23, 0.72);
   --panel-border: rgba(148, 163, 184, 0.12);
   --muted: #94a3b8;
   --accent: #7dd3fc;
   --accent-strong: #38bdf8;
+  --accent-surface: rgba(125, 211, 252, 0.1);
+  --accent-surface-hover: rgba(125, 211, 252, 0.15);
+  --accent-border: rgba(125, 211, 252, 0.22);
+  --accent-text: #e0f2fe;
+  --soft-surface: rgba(255, 255, 255, 0.04);
+  --soft-surface-strong: rgba(255, 255, 255, 0.07);
+  --soft-border: rgba(255, 255, 255, 0.1);
+  --soft-border-strong: rgba(255, 255, 255, 0.18);
+  --header-bg: rgba(2, 6, 23, 0.74);
+  --header-shadow: 0 20px 80px rgba(2, 8, 23, 0.45);
+  --button-primary-bg: #f8fafc;
+  --button-primary-text: #020617;
+  --button-secondary-bg: rgba(255, 255, 255, 0.04);
+  --button-secondary-bg-hover: rgba(255, 255, 255, 0.08);
+  --button-secondary-border: rgba(255, 255, 255, 0.12);
+  --button-hover-shadow: 0 18px 48px rgba(2, 8, 23, 0.22);
+  --surface-shadow:
+    0 20px 60px rgba(2, 8, 23, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --surface-shadow-hover:
+    0 32px 110px rgba(2, 8, 23, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --icon-surface: rgba(255, 255, 255, 0.05);
+  --icon-border: rgba(255, 255, 255, 0.1);
+  --grid-line: rgba(148, 163, 184, 0.04);
+  --page-backdrop:
+    radial-gradient(circle at top, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 1)),
+    linear-gradient(
+      180deg,
+      rgba(2, 6, 23, 1) 0%,
+      rgba(2, 6, 23, 0.98) 45%,
+      rgba(2, 6, 23, 1) 100%
+    );
+  --glow-primary: rgba(14, 165, 233, 0.12);
+  --glow-secondary: rgba(34, 211, 238, 0.08);
+  --hero-particle: rgba(186, 230, 253, 0.8);
+  --track-fade-solid: #020617;
+  --track-fade-soft: rgba(2, 6, 23, 0.8);
+  --progress-track: rgba(255, 255, 255, 0.12);
+  --progress-bar-shadow: 0 0 18px rgba(56, 189, 248, 0.22);
+  --activity-level-0: rgba(15, 23, 42, 0.9);
+  --activity-level-1: rgba(8, 47, 73, 0.82);
+  --activity-level-2: rgba(12, 74, 110, 0.82);
+  --activity-level-3: rgba(14, 116, 144, 0.82);
+  --activity-level-4: rgba(34, 211, 238, 0.9);
+  --activity-border: rgba(255, 255, 255, 0.08);
+  --canvas-bg: #030712;
+  --canvas-fog: #030712;
+  --canvas-ring: #1e293b;
+  --canvas-light-a: #dbeafe;
+  --canvas-light-b: #38bdf8;
+  --canvas-light-c: #22d3ee;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --background: #f8fafc;
+  --foreground: #1e293b;
+  --foreground-strong: #0f172a;
+  --foreground-soft: #334155;
+  --panel: rgba(255, 255, 255, 0.78);
+  --panel-gradient-start: rgba(255, 255, 255, 0.92);
+  --panel-gradient-end: rgba(241, 245, 249, 0.88);
+  --panel-border: rgba(148, 163, 184, 0.2);
+  --muted: #64748b;
+  --accent: #60a5fa;
+  --accent-strong: #2563eb;
+  --accent-surface: rgba(37, 99, 235, 0.08);
+  --accent-surface-hover: rgba(37, 99, 235, 0.12);
+  --accent-border: rgba(37, 99, 235, 0.18);
+  --accent-text: #1d4ed8;
+  --soft-surface: rgba(255, 255, 255, 0.74);
+  --soft-surface-strong: rgba(255, 255, 255, 0.92);
+  --soft-border: rgba(148, 163, 184, 0.18);
+  --soft-border-strong: rgba(148, 163, 184, 0.28);
+  --header-bg: rgba(248, 250, 252, 0.82);
+  --header-shadow: 0 20px 80px rgba(15, 23, 42, 0.09);
+  --button-primary-bg: #0f172a;
+  --button-primary-text: #f8fafc;
+  --button-secondary-bg: rgba(255, 255, 255, 0.78);
+  --button-secondary-bg-hover: rgba(255, 255, 255, 0.96);
+  --button-secondary-border: rgba(148, 163, 184, 0.22);
+  --button-hover-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  --surface-shadow:
+    0 18px 55px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  --surface-shadow-hover:
+    0 28px 80px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  --icon-surface: rgba(255, 255, 255, 0.82);
+  --icon-border: rgba(148, 163, 184, 0.2);
+  --grid-line: rgba(148, 163, 184, 0.08);
+  --page-backdrop:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 1)),
+    linear-gradient(
+      180deg,
+      rgba(248, 250, 252, 1) 0%,
+      rgba(241, 245, 249, 0.98) 45%,
+      rgba(248, 250, 252, 1) 100%
+    );
+  --glow-primary: rgba(59, 130, 246, 0.1);
+  --glow-secondary: rgba(14, 165, 233, 0.08);
+  --hero-particle: rgba(59, 130, 246, 0.34);
+  --track-fade-solid: #f8fafc;
+  --track-fade-soft: rgba(248, 250, 252, 0.84);
+  --progress-track: rgba(148, 163, 184, 0.18);
+  --progress-bar-shadow: 0 0 18px rgba(37, 99, 235, 0.16);
+  --activity-level-0: rgba(226, 232, 240, 0.9);
+  --activity-level-1: rgba(191, 219, 254, 0.82);
+  --activity-level-2: rgba(147, 197, 253, 0.84);
+  --activity-level-3: rgba(96, 165, 250, 0.88);
+  --activity-level-4: rgba(37, 99, 235, 0.92);
+  --activity-border: rgba(148, 163, 184, 0.16);
+  --canvas-bg: #eff6ff;
+  --canvas-fog: #eff6ff;
+  --canvas-ring: #cbd5e1;
+  --canvas-light-a: #bfdbfe;
+  --canvas-light-b: #60a5fa;
+  --canvas-light-c: #38bdf8;
 }
 
 * {
@@ -51,10 +175,18 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 96px 96px;
   background-attachment: fixed;
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease,
+    background-image 0.35s ease;
+}
+
+section[id] {
+  scroll-margin-top: 7rem;
 }
 
 img {
@@ -73,18 +205,57 @@ button {
 }
 
 .section-space {
-  @apply pt-28 sm:pt-32 lg:pt-36;
+  @apply pt-32 sm:pt-40 lg:pt-48;
 }
 
 .glass-panel {
   border: 1px solid var(--panel-border);
   background:
-    linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(2, 6, 23, 0.72)),
-    rgba(15, 23, 42, 0.68);
-  box-shadow:
-    0 20px 60px rgba(2, 8, 23, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    linear-gradient(180deg, var(--panel-gradient-start), var(--panel-gradient-end)),
+    var(--panel);
+  box-shadow: var(--surface-shadow);
   backdrop-filter: blur(24px);
+  transition:
+    background-color 0.35s ease,
+    background-image 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.interactive-lift {
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s ease,
+    background-color 0.35s ease;
+  will-change: transform, box-shadow;
+}
+
+.interactive-lift:hover {
+  transform: translate3d(0, -6px, 0);
+}
+
+.interactive-button {
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s ease,
+    background-color 0.3s ease,
+    color 0.3s ease;
+  will-change: transform, box-shadow;
+}
+
+.interactive-button:hover {
+  transform: translate3d(0, -3px, 0);
+  box-shadow: var(--button-hover-shadow);
+}
+
+.interactive-button:disabled:hover {
+  transform: translate3d(0, 0, 0);
+  box-shadow: none;
 }
 
 .scene-shell::after {
@@ -95,6 +266,139 @@ button {
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 24%),
     radial-gradient(circle at top right, rgba(125, 211, 252, 0.16), transparent 30%);
   pointer-events: none;
+}
+
+.theme-page-backdrop {
+  background: var(--page-backdrop);
+  transition: background 0.35s ease;
+}
+
+.theme-header {
+  border: 1px solid var(--soft-border);
+  background: var(--header-bg);
+  box-shadow: var(--header-shadow);
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.theme-pill {
+  border: 1px solid var(--soft-border);
+  background: var(--soft-surface);
+  color: var(--foreground-soft);
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease;
+}
+
+.theme-icon-panel {
+  border: 1px solid var(--icon-border);
+  background: var(--icon-surface);
+  color: var(--accent-text);
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease;
+}
+
+.theme-surface {
+  border: 1px solid var(--soft-border);
+  background: var(--soft-surface);
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.theme-surface-strong {
+  border: 1px solid var(--soft-border);
+  background: var(--soft-surface-strong);
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.theme-nav-chip {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.theme-nav-chip-active {
+  color: var(--foreground-strong);
+}
+
+.theme-nav-chip-idle {
+  color: var(--muted);
+}
+
+.theme-nav-chip-idle:hover {
+  color: var(--foreground-strong);
+  background: var(--soft-surface);
+}
+
+.theme-button-primary {
+  background: var(--button-primary-bg);
+  color: var(--button-primary-text);
+}
+
+.theme-button-secondary {
+  border: 1px solid var(--button-secondary-border);
+  background: var(--button-secondary-bg);
+  color: var(--foreground-strong);
+}
+
+.theme-button-secondary:hover {
+  border-color: var(--soft-border-strong);
+  background: var(--button-secondary-bg-hover);
+}
+
+.theme-button-accent {
+  border: 1px solid var(--accent-border);
+  background: var(--accent-surface);
+  color: var(--accent-text);
+}
+
+.theme-button-accent:hover {
+  background: var(--accent-surface-hover);
+}
+
+.theme-track-fade-left {
+  background: linear-gradient(
+    to right,
+    var(--track-fade-solid),
+    var(--track-fade-soft) 60%,
+    transparent
+  );
+}
+
+.theme-track-fade-right {
+  background: linear-gradient(
+    to left,
+    var(--track-fade-solid),
+    var(--track-fade-soft) 60%,
+    transparent
+  );
+}
+
+.theme-progress-track {
+  background: var(--progress-track);
+}
+
+.theme-progress-bar {
+  background: var(--accent-strong);
+  box-shadow: var(--progress-bar-shadow);
+}
+
+.theme-accent-gradient {
+  background-image: linear-gradient(to right, var(--foreground-strong), var(--accent-strong));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 @layer utilities {

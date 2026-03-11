@@ -114,16 +114,24 @@ export function ProjectsShowcase({
         track.style.paddingRight = `${endInset}px`;
       };
 
-      const getMaxOffset = () =>
-        Math.max(0, getCardTargetOffset(cards[cards.length - 1], viewport));
-      const focusSpan = () => Math.max(viewport.clientWidth * 0.72, 1);
+      let cardOffsets: number[] = [];
+      let maxOffset = 0;
+
+      const refreshMeasurements = () => {
+        syncTrackPadding();
+        cardOffsets = cards.map((card) => getCardTargetOffset(card, viewport));
+        maxOffset = Math.max(0, cardOffsets[cards.length - 1] ?? 0);
+      };
+
+      const getMaxOffset = () => maxOffset;
+      const focusSpan = () => Math.max(viewport.clientWidth * 0.78, 1);
 
       const getClosestIndex = (currentOffset: number) => {
         let nextIndex = 0;
         let smallestDistance = Number.POSITIVE_INFINITY;
 
-        cards.forEach((card, index) => {
-          const distance = Math.abs(getCardTargetOffset(card, viewport) - currentOffset);
+        cardOffsets.forEach((offset, index) => {
+          const distance = Math.abs(offset - currentOffset);
 
           if (distance < smallestDistance) {
             smallestDistance = distance;
@@ -135,17 +143,15 @@ export function ProjectsShowcase({
       };
 
       const syncCardFocus = (currentOffset: number) => {
-        cards.forEach((card) => {
-          const distance = Math.abs(
-            getCardTargetOffset(card, viewport) - currentOffset,
-          );
+        cards.forEach((card, index) => {
+          const distance = Math.abs((cardOffsets[index] ?? 0) - currentOffset);
           const proximity = Math.max(0, 1 - distance / focusSpan());
 
           gsap.set(card, {
-            scale: 0.92 + proximity * 0.1,
-            y: -12 * proximity,
-            opacity: 0.44 + proximity * 0.56,
-            zIndex: Math.round(10 + proximity * 10),
+            scale: 0.89 + proximity * 0.14,
+            y: -20 * proximity,
+            opacity: 0.38 + proximity * 0.62,
+            zIndex: Math.round(10 + proximity * 20),
             force3D: true,
           });
         });
@@ -158,17 +164,17 @@ export function ProjectsShowcase({
         paused: true,
       });
 
-      syncTrackPadding();
+      refreshMeasurements();
 
       const trigger = ScrollTrigger.create({
         trigger: stage,
         start: () => `top top+=${getPinnedOffset()}`,
         end: () => `+=${Math.max(getMaxOffset(), 1)}`,
         animation: trackTween,
-        scrub: true,
+        scrub: 0.9,
         pin: true,
         pinSpacing: true,
-        anticipatePin: 1,
+        anticipatePin: 1.2,
         invalidateOnRefresh: true,
         snap:
           projects.length > 1
@@ -186,10 +192,10 @@ export function ProjectsShowcase({
 
                   return targetOffset / distance;
                 },
-                delay: 0.03,
+                delay: 0.05,
                 inertia: false,
-                duration: { min: 0.18, max: 0.38 },
-                ease: "power2.out",
+                duration: { min: 0.22, max: 0.42 },
+                ease: "power3.out",
               }
             : undefined,
         onUpdate: (self) => {
@@ -199,7 +205,7 @@ export function ProjectsShowcase({
           setActiveCardIndex(nextIndex);
         },
         onRefreshInit: () => {
-          syncTrackPadding();
+          refreshMeasurements();
         },
         onRefresh: (self) => {
           const currentOffset = self.progress * getMaxOffset();
@@ -325,10 +331,10 @@ export function ProjectsShowcase({
   const lenisPreventProps = !isDesktop ? { "data-lenis-prevent": "" } : {};
 
   return (
-    <div ref={stageRef} className="space-y-8 lg:min-h-[72vh]">
+    <div ref={stageRef} className="space-y-10 lg:min-h-[78vh]">
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-        <div className="max-w-xl">
-          <p className="text-sm leading-7 text-slate-300">
+        <div className="max-w-lg">
+          <p className="text-sm leading-7 text-[color:var(--foreground-soft)]">
             Scroll to move through the projects horizontally, or use the controls to
             focus on each build individually.
           </p>
@@ -340,7 +346,7 @@ export function ProjectsShowcase({
             aria-label="Previous project"
             onClick={() => goToIndex(activeIndex - 1)}
             disabled={activeIndex === 0}
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm font-medium text-slate-100 transition-all hover:border-white/20 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-35"
+            className="interactive-button theme-button-secondary inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-35"
           >
             <ArrowLeft className="h-4 w-4" />
             Previous
@@ -350,7 +356,7 @@ export function ProjectsShowcase({
             aria-label="Next project"
             onClick={() => goToIndex(activeIndex + 1)}
             disabled={activeIndex === projects.length - 1}
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-sky-300/20 bg-sky-300/10 px-4 text-sm font-medium text-sky-100 transition-all hover:bg-sky-300/15 disabled:cursor-not-allowed disabled:opacity-35"
+            className="interactive-button theme-button-accent inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-35"
           >
             Next
             <ArrowRight className="h-4 w-4" />
@@ -369,14 +375,14 @@ export function ProjectsShowcase({
       >
         {isDesktop ? (
           <>
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#020617] via-[#020617]/75 to-transparent" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#020617] via-[#020617]/75 to-transparent" />
+            <div className="theme-track-fade-left pointer-events-none absolute inset-y-0 left-0 z-10 w-28" />
+            <div className="theme-track-fade-right pointer-events-none absolute inset-y-0 right-0 z-10 w-28" />
           </>
         ) : null}
 
         <div
           ref={trackRef}
-          className="flex w-max gap-6 pb-4 pl-4 pr-4 pt-2 will-change-transform lg:gap-10 lg:pl-0 lg:pr-0"
+          className="flex w-max gap-6 pb-6 pl-4 pr-4 pt-4 will-change-transform lg:gap-12 lg:pl-0 lg:pr-0"
         >
           {projects.map((project, index) => {
             const Icon = iconByProject[project.title] ?? FileSearch;
@@ -388,46 +394,53 @@ export function ProjectsShowcase({
                 ref={(node) => {
                   cardRefs.current[index] = node;
                 }}
-                className={`group relative flex w-[84vw] max-w-[36rem] shrink-0 snap-center flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.9),rgba(2,6,23,0.82))] p-6 shadow-[0_24px_80px_rgba(2,8,23,0.34)] transition-[border-color,box-shadow] duration-500 ease-out will-change-transform md:w-[32rem] lg:w-[36rem] lg:cursor-pointer ${
+                data-cursor-reactive
+                data-cursor-reactive-intensity="0.9"
+                className={`group glass-panel relative flex w-[84vw] max-w-[36rem] shrink-0 snap-center flex-col overflow-hidden rounded-[2rem] p-6 transition-[border-color,box-shadow] duration-500 ease-out will-change-transform md:w-[32rem] lg:w-[36rem] lg:cursor-pointer ${
                   isActive
-                    ? "border-sky-300/22 shadow-[0_34px_110px_rgba(2,8,23,0.46)]"
-                    : "border-white/10"
+                    ? "border-[color:var(--accent-border)] shadow-[var(--surface-shadow-hover)]"
+                    : "border-[color:var(--soft-border)]"
                 } ${
                   !isDesktop && isActive ? "scale-[1.01]" : ""
-                } hover:border-white/20 hover:shadow-[0_34px_100px_rgba(2,8,23,0.5)]`}
+                } hover:border-[color:var(--soft-border-strong)] hover:shadow-[var(--surface-shadow-hover)]`}
               >
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-                <div className="flex items-start justify-between gap-4">
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-3 text-sky-100">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs uppercase tracking-[0.18em] text-slate-300">
-                    Project {index + 1}
-                  </span>
-                </div>
-
-                <h3 className="mt-8 text-2xl font-semibold tracking-tight text-white md:text-[1.9rem]">
-                  {project.title}
-                </h3>
-
-                <p className="mt-5 text-base leading-8 text-slate-300">
-                  {project.description}
-                </p>
-
-                <p className="mt-6 rounded-3xl border border-white/8 bg-white/[0.03] p-4 text-sm leading-7 text-slate-400">
-                  {project.outcome}
-                </p>
-
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {project.technologies.map((technology) => (
-                    <span
-                      key={technology}
-                      className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-sm text-slate-300"
-                    >
-                      {technology}
+                <div
+                  data-cursor-reactive-inner
+                  className="flex h-full flex-col transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.012]"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="theme-icon-panel rounded-2xl p-3">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className="theme-pill rounded-full px-3 py-1 text-xs uppercase tracking-[0.18em]">
+                      Project {index + 1}
                     </span>
-                  ))}
+                  </div>
+
+                  <h3 className="mt-8 text-balance text-2xl font-semibold tracking-[-0.03em] text-[color:var(--foreground-strong)] md:text-[1.95rem]">
+                    {project.title}
+                  </h3>
+
+                  <p className="mt-5 text-base leading-8 text-[color:var(--foreground-soft)]">
+                    {project.description}
+                  </p>
+
+                  <p className="theme-surface mt-6 rounded-3xl p-4 text-sm leading-7 text-[color:var(--muted)]">
+                    {project.outcome}
+                  </p>
+
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {project.technologies.map((technology) => (
+                      <span
+                        key={technology}
+                        className="theme-pill rounded-full px-3 py-1 text-sm"
+                      >
+                        {technology}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </article>
             );
@@ -444,8 +457,8 @@ export function ProjectsShowcase({
             onClick={() => goToIndex(index)}
             className={`h-2.5 rounded-full transition-all ${
               index === activeIndex
-                ? "w-10 bg-sky-300"
-                : "w-2.5 bg-white/20 hover:bg-white/40"
+                ? "w-10 bg-[color:var(--accent)]"
+                : "w-2.5 bg-[color:var(--soft-border)] hover:bg-[color:var(--soft-border-strong)]"
             }`}
           />
         ))}
