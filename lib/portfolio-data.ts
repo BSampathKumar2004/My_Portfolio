@@ -61,7 +61,7 @@ export const navItems: NavItem[] = [
   { id: "architecture", label: "Architecture" },
   { id: "experience", label: "Experience" },
   { id: "education", label: "Education" },
-  { id: "contact", label: "Contact" },
+  // { id: "contact", label: "Contact" },
 ];
 
 export const heroRoles = [

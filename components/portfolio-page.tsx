@@ -17,6 +17,7 @@ import {
   ArrowRight,
   BriefcaseBusiness,
   Download,
+  GithubIcon,
   Mail,
   MoonStar,
   Phone,
@@ -765,11 +766,11 @@ export function PortfolioPage() {
 
   return (
     <div ref={rootRef} className="relative overflow-x-clip">
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-[70] h-[2px]">
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-[70] h-[3px]">
         <div className="theme-progress-track absolute inset-0" />
         <div
           ref={progressBarRef}
-          className="theme-progress-bar absolute inset-y-0 left-0 origin-left opacity-0"
+          className="theme-progress-bar absolute inset-y-0 left-0 origin-left opacity-0 will-change-transform"
           style={{ width: "100%", transform: "scaleX(0)" }}
         />
       </div>
@@ -1248,10 +1249,16 @@ export function PortfolioPage() {
                   icon={Mail}
                 />
                 <ContactCard
-                  href="https://linkedin.com/in/bandaru-sampath-kumar-280297310/"
+                  href="https://www.linkedin.com/in/sampath-kumar-bandaru-280297310"
                   label="LinkedIn"
                   value="linkedin.com/in/bandaru-sampath-kumar-280297310/"
                   icon={BriefcaseBusiness}
+                />
+                <ContactCard
+                  href="https://github.com/BSampathKumar2004"
+                  label="Github"
+                  value="https://github.com/BSampathKumar2004"
+                  icon={GithubIcon}
                 />
               </div>
             </div>
