@@ -24,6 +24,13 @@ export type ProjectItem = {
   description: string;
   outcome: string;
   technologies: string[];
+  repositoryUrl?: string;
+  repositoryLabel?: string;
+  projectUrl?: string;
+  projectLabel?: string;
+  architectureTitle: string;
+  architectureDescription: string;
+  architectureFlow: string[];
 };
 
 export type CertificationItem = {
@@ -58,7 +65,6 @@ export const navItems: NavItem[] = [
   { id: "about", label: "About" },
   { id: "stack", label: "Tech Stack" },
   { id: "projects", label: "Projects" },
-  { id: "architecture", label: "Architecture" },
   { id: "experience", label: "Experience" },
   { id: "education", label: "Education" },
   // { id: "contact", label: "Contact" },
@@ -235,26 +241,65 @@ export const projects: ProjectItem[] = [
   {
     title: "AI Document Processing Pipeline",
     description:
-      "Backend services for OCR-based document processing using PaddleOCR and LLM pipelines for structured data extraction.",
+      "A scalable FastAPI backend system that processes uploaded documents with OCR and LLM pipelines to extract clean structured data.",
     outcome:
-      "Designed a reliable backend flow that converts unstructured files into validated, application-ready records.",
-    technologies: ["Python", "FastAPI", "PaddleOCR", "LLM Integration"],
+      "Built to turn unstructured documents into validated records without blocking the API layer, using asynchronous workers and durable data storage.",
+    technologies: ["Python", "FastAPI", "PaddleOCR", "LLM", "PostgreSQL"],
+    repositoryUrl: "https://github.com/BSampathKumar2004",
+    repositoryLabel: "GitHub Repository",
+    architectureTitle: "Asynchronous document extraction pipeline",
+    architectureDescription:
+      "Uploads enter through FastAPI, are validated and published to Kafka, then background workers run OCR and LLM extraction before writing structured output into PostgreSQL.",
+    architectureFlow: [
+      "Document Upload",
+      "FastAPI API Layer",
+      "Kafka Event Queue",
+      "OCR Worker",
+      "LLM Extraction Worker",
+      "PostgreSQL Storage",
+    ],
   },
   {
     title: "YouTube Live Streaming Backend System",
     description:
-      "Backend APIs for managing YouTube live streams, scheduling, chat integration, and automated thumbnail generation.",
+      "Backend APIs for managing YouTube live streams, scheduling sessions, chat integration, and automated thumbnail generation.",
     outcome:
-      "Centralized stream operations into service-driven APIs for scheduling, moderation, and media automation.",
+      "Centralized live-stream operations into service-driven APIs so scheduling, moderation, and media automation stay consistent across the workflow.",
     technologies: ["FastAPI", "YouTube API", "MoviePy"],
+    repositoryUrl: "https://github.com/BSampathKumar2004",
+    repositoryLabel: "GitHub Repository",
+    architectureTitle: "Streaming operations orchestration backend",
+    architectureDescription:
+      "A FastAPI control layer coordinates stream scheduling, YouTube API integration, chat handling, and media-generation workers so live operations stay organized behind a single backend surface.",
+    architectureFlow: [
+      "Admin Dashboard",
+      "FastAPI Control API",
+      "YouTube Integration Service",
+      "Chat / Scheduling Workers",
+      "Thumbnail Automation",
+      "Operational State Store",
+    ],
   },
   {
     title: "Hall Booking Management System",
     description:
-      "REST API backend for hall reservation management with database schema design and Docker containerization.",
+      "A REST API backend for hall reservation management with booking workflows, schema design, and containerized deployment.",
     outcome:
-      "Created a structured reservation backend with maintainable schemas and reproducible containerized setup.",
+      "Solved scheduling and reservation tracking with maintainable schemas, clear API contracts, and a reproducible Docker-based setup.",
     technologies: ["Python", "FastAPI", "PostgreSQL", "MongoDB", "Docker"],
+    repositoryUrl: "https://github.com/BSampathKumar2004/Halls_booking_backend",
+    repositoryLabel: "GitHub Repository",
+    architectureTitle: "Reservation and availability management API",
+    architectureDescription:
+      "Client requests move through FastAPI services that validate reservations, persist booking state in PostgreSQL, store flexible records in MongoDB where needed, and run consistently through Dockerized environments.",
+    architectureFlow: [
+      "Client / Admin Panel",
+      "FastAPI Reservation API",
+      "Booking Validation Layer",
+      "PostgreSQL Core Records",
+      "MongoDB Supporting Documents",
+      "Dockerized Deployment",
+    ],
   },
 ];
 

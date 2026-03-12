@@ -30,6 +30,7 @@ export function AboutStorySection({
 
       const buildTimeline = (distanceMultiplier: number, minDistance: number) => {
         gsap.set(storySteps, { opacity: 0, y: 40, force3D: true });
+        gsap.set(storySteps[0], { opacity: 1, y: 0, force3D: true });
 
         const timeline = gsap.timeline({
           defaults: { ease: "none" },
@@ -50,11 +51,13 @@ export function AboutStorySection({
           const isLast = index === storySteps.length - 1;
           const position = index * 0.94;
 
-          timeline.to(
-            step,
-            { opacity: 1, y: 0, duration: 0.4, force3D: true },
-            position,
-          );
+          if (index > 0) {
+            timeline.to(
+              step,
+              { opacity: 1, y: 0, duration: 0.4, force3D: true },
+              position,
+            );
+          }
 
           if (!isLast) {
             timeline.to(

@@ -1,6 +1,4 @@
 "use client";
-
-import dynamic from "next/dynamic";
 import {
   useCallback,
   useEffect,
@@ -40,7 +38,6 @@ import {
   techStack,
 } from "@/lib/portfolio-data";
 import { AboutStorySection } from "@/components/about-story-section";
-import { ArchitectureShowcase } from "@/components/architecture-showcase";
 import { BackendFlowStory } from "@/components/backend-flow-story";
 import { CinematicStatementSection } from "@/components/cinematic-statement-section";
 import { CountUp } from "@/components/count-up";
@@ -48,37 +45,8 @@ import { GitHubActivityGraph } from "@/components/github-activity-graph";
 import { HeroScene } from "@/components/hero-scene";
 import { ProjectsShowcase } from "@/components/projects-showcase";
 import { SectionHeading } from "@/components/section-heading";
+import { TechClusterSection } from "@/components/tech-cluster-section";
 import { TypingRoles } from "@/components/typing-roles";
-
-const TechClusterSection = dynamic(
-  () =>
-    import("@/components/tech-cluster-section").then(
-      (module) => module.TechClusterSection,
-    ),
-  {
-    ssr: false,
-    loading: () => <SceneFallback label="Preparing technology cluster" />,
-  },
-);
-
-function SceneFallback({ label }: { label: string }) {
-  return (
-    <div className="glass-panel flex h-[420px] items-center justify-center sm:h-[520px]">
-      <div className="space-y-3 text-center">
-        <div
-          className="mx-auto h-12 w-12 animate-spin rounded-full border-2"
-          style={{
-            borderColor: "var(--soft-border)",
-            borderTopColor: "var(--accent)",
-          }}
-        />
-        <p className="text-sm uppercase tracking-[0.28em] text-[color:var(--muted)]">
-          {label}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 function ContactCard({
   href,
@@ -98,24 +66,30 @@ function ContactCard({
       rel={href.startsWith("http") ? "noreferrer" : undefined}
       whileHover={{ y: -6, scale: 1.01 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className="glass-panel flex items-center gap-4 p-5"
+      className="group glass-panel radius-card flex items-center justify-between gap-4 p-5 transition-[border-color,box-shadow] duration-300 hover:border-[color:var(--accent-border)]"
     >
-      <div className="theme-icon-panel rounded-2xl p-3">
-        <Icon className="h-5 w-5" />
+      <div className="flex items-center gap-4">
+        <div className="theme-icon-panel radius-icon p-3 transition-transform duration-300 group-hover:scale-[1.04]">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
+            {label}
+          </p>
+          <p className="mt-2 text-sm sm:text-base">
+            <span className="transition-colors duration-300 group-hover:text-[color:var(--accent-text)]">
+              {value}
+            </span>
+          </p>
+        </div>
       </div>
-      <div>
-        <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
-          {label}
-        </p>
-        <p className="mt-2 text-sm text-[color:var(--foreground)] sm:text-base">
-          {value}
-        </p>
-      </div>
+      <ArrowRight className="h-4 w-4 shrink-0 text-[color:var(--muted)] transition-all duration-300 group-hover:translate-x-1 group-hover:text-[color:var(--accent)]" />
     </motion.a>
   );
 }
 
-const lenisEasing = (t: number) => 1 - Math.pow(1 - t, 4);
+const navScrollEasing = (t: number) =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const THEME_STORAGE_KEY = "portfolio-theme";
 const heroParticles = [
   { top: "14%", left: "8%", size: "h-2 w-2", speed: -22, opacity: "opacity-55" },
@@ -133,6 +107,20 @@ export function PortfolioPage() {
   const headerRef = useRef<HTMLElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
+  const heroResetAppliedRef = useRef(false);
+  const heroElementsRef = useRef<{
+    badge?: HTMLElement;
+    heading?: HTMLElement;
+    lead: HTMLElement[];
+    summary?: HTMLElement;
+    highlights?: HTMLElement;
+    copy?: HTMLElement;
+    avatar?: HTMLElement;
+    particles: HTMLElement[];
+  }>({
+    lead: [],
+    particles: [],
+  });
   const activeSectionRef = useRef("home");
   const [activeSection, setActiveSection] = useState("home");
   const [theme, setTheme] = useState<ThemeMode>("dark");
@@ -157,6 +145,32 @@ export function PortfolioPage() {
 
     activeSectionRef.current = sectionId;
     setActiveSection(sectionId);
+  }, []);
+  const resetHeroVisualState = useCallback(() => {
+    const { badge, heading, lead, summary, highlights, copy, avatar, particles } =
+      heroElementsRef.current;
+    const resetNodes = [
+      badge,
+      heading,
+      ...lead,
+      summary,
+      highlights,
+      copy,
+      avatar,
+      ...particles,
+    ].filter(Boolean) as HTMLElement[];
+
+    if (resetNodes.length === 0) {
+      return;
+    }
+
+    gsap.set(resetNodes, {
+      clearProps: "opacity,transform,x,xPercent,y,yPercent,scale",
+    });
+
+    if (heading) {
+      gsap.set(heading, { clearProps: "transformOrigin" });
+    }
   }, []);
 
   useEffect(() => {
@@ -259,6 +273,8 @@ export function PortfolioPage() {
         duration: 1,
         stagger: 0.12,
         ease: "power3.out",
+        clearProps: "opacity,transform",
+        overwrite: "auto",
       });
 
       gsap.utils
@@ -486,6 +502,17 @@ export function PortfolioPage() {
       const heroParticleElements =
         gsap.utils.toArray<HTMLElement>("[data-hero-particle]");
 
+      heroElementsRef.current = {
+        badge: heroBadge ?? undefined,
+        heading: heroHeading ?? undefined,
+        lead: heroLead,
+        summary: heroSummary ?? undefined,
+        highlights: heroHighlightsGrid ?? undefined,
+        copy: heroCopy ?? undefined,
+        avatar: heroAvatar ?? undefined,
+        particles: heroParticleElements,
+      };
+
       const createHeroTimeline = (pin: boolean) => {
         if (!heroSection || !heroCopy || !heroAvatar) {
           return;
@@ -501,6 +528,30 @@ export function PortfolioPage() {
             pinSpacing: pin,
             anticipatePin: 1,
             invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              if (self.progress <= 0.001) {
+                if (!heroResetAppliedRef.current) {
+                  resetHeroVisualState();
+                  heroResetAppliedRef.current = true;
+                }
+
+                return;
+              }
+
+              if (heroResetAppliedRef.current) {
+                heroResetAppliedRef.current = false;
+              }
+            },
+            onLeaveBack: () => {
+              resetHeroVisualState();
+              heroResetAppliedRef.current = true;
+            },
+            onRefreshInit: () => {
+              if ((lenisRef.current?.scroll ?? window.scrollY) <= 6) {
+                resetHeroVisualState();
+                heroResetAppliedRef.current = true;
+              }
+            },
           },
         })
           .to(
@@ -593,83 +644,12 @@ export function PortfolioPage() {
           );
       };
 
-      const architectureSection = document.querySelector<HTMLElement>(
-        "[data-architecture-section]",
-      );
-      const architectureCopy = document.querySelector<HTMLElement>(
-        "[data-architecture-copy]",
-      );
-      const architectureCard = document.querySelector<HTMLElement>(
-        "[data-architecture-card]",
-      );
-      const architectureImage = document.querySelector<HTMLElement>(
-        "[data-architecture-image-shell]",
-      );
-      const architectureCaption = document.querySelector<HTMLElement>(
-        "[data-architecture-caption]",
-      );
-
-      const createArchitectureTimeline = (pin: boolean) => {
-        if (
-          !architectureSection ||
-          !architectureCopy ||
-          !architectureCard ||
-          !architectureImage ||
-          !architectureCaption
-        ) {
-          return;
-        }
-
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: architectureSection,
-            start: pin ? () => `top top+=${getPinnedOffset()}` : "top 78%",
-            end: pin ? "+=58%" : "bottom 60%",
-            scrub: 0.9,
-            pin,
-            pinSpacing: pin,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-          },
-        })
-          .fromTo(
-            architectureCopy,
-            { opacity: 0.18, y: 28, force3D: true },
-            { opacity: 1, y: 0, ease: "none" },
-            0,
-          )
-          .fromTo(
-            architectureCard,
-            { opacity: 0.28 },
-            { opacity: 1, ease: "none" },
-            0.02,
-          )
-          .to(
-            architectureImage,
-            {
-              scale: 1.045,
-              yPercent: -3,
-              ease: "none",
-              force3D: true,
-            },
-            0.08,
-          )
-          .fromTo(
-            architectureCaption,
-            { opacity: 0.3, y: 18, force3D: true },
-            { opacity: 1, y: 0, ease: "none" },
-            0.18,
-          );
-      };
-
       media.add("(min-width: 1024px)", () => {
         createHeroTimeline(true);
-        createArchitectureTimeline(true);
       });
 
       media.add("(max-width: 1023px)", () => {
         createHeroTimeline(false);
-        createArchitectureTimeline(false);
       });
     }, rootRef);
 
@@ -695,6 +675,7 @@ export function PortfolioPage() {
     });
 
     return () => {
+      heroElementsRef.current = { lead: [], particles: [] };
       sectionTriggers.forEach((trigger) => trigger.kill());
       media.revert();
       context.revert();
@@ -704,7 +685,7 @@ export function PortfolioPage() {
       gsap.ticker.remove(tick);
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
-  }, [getPinnedOffset, setActiveSectionIfNeeded]);
+  }, [getPinnedOffset, resetHeroVisualState, setActiveSectionIfNeeded]);
 
   const getScrollOffset = () => {
     const headerHeight = headerRef.current?.getBoundingClientRect().height ?? 0;
@@ -714,35 +695,47 @@ export function PortfolioPage() {
 
   const getScrollDuration = (targetId: string) => {
     if (typeof window === "undefined") {
-      return 1.35;
+      return 1.45;
+    }
+
+    if (targetId === "home") {
+      const viewport = window.innerHeight || 900;
+      const distance = Math.abs(window.scrollY);
+      const normalizedDistance = Math.min(distance / viewport, 6);
+
+      return Math.max(1.24, Math.min(1.95, 1.18 + normalizedDistance * 0.15));
     }
 
     const target = document.getElementById(targetId);
 
     if (!target) {
-      return 1.35;
+      return 1.45;
     }
 
     const headerOffset = Math.abs(getScrollOffset());
     const targetTop =
       window.scrollY + target.getBoundingClientRect().top - headerOffset;
     const distance = Math.abs(targetTop - window.scrollY);
+    const viewport = window.innerHeight || 900;
+    const normalizedDistance = Math.min(distance / viewport, 6);
 
-    return Math.max(1.12, Math.min(1.55, 1.08 + Math.sqrt(distance) / 72));
+    return Math.max(1.24, Math.min(1.95, 1.18 + normalizedDistance * 0.15));
   };
 
   const scrollToSection = (id: string) => {
-    const target = document.getElementById(id);
-
-    if (!target || !lenisRef.current) {
+    if (!lenisRef.current) {
       return;
     }
 
-    lenisRef.current?.scrollTo(`#${id}`, {
+    if (id !== "home" && !document.getElementById(id)) {
+      return;
+    }
+
+    lenisRef.current.scrollTo(id === "home" ? 0 : `#${id}`, {
       lock: true,
-      offset: getScrollOffset(),
+      offset: id === "home" ? 0 : getScrollOffset(),
       duration: getScrollDuration(id),
-      easing: lenisEasing,
+      easing: navScrollEasing,
     });
   };
 
@@ -963,7 +956,7 @@ export function PortfolioPage() {
               className="mt-12 grid gap-4 sm:grid-cols-3"
             >
               {heroHighlights.map((highlight) => (
-                <div key={highlight.label} className="glass-panel interactive-lift p-4 sm:p-5">
+                <div key={highlight.label} className="glass-panel radius-card interactive-lift p-4 sm:p-5">
                   <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
                     {highlight.label}
                   </p>
@@ -1011,7 +1004,7 @@ export function PortfolioPage() {
                 key={stat.label}
                 whileHover={{ y: -6, scale: 1.01 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="glass-panel p-6 sm:p-7"
+                className="glass-panel radius-card p-6 sm:p-7"
               >
                 <p className="text-3xl font-semibold text-[color:var(--foreground-strong)] sm:text-4xl">
                   {typeof stat.value === "number" ? (
@@ -1042,9 +1035,9 @@ export function PortfolioPage() {
               title="An interactive backend toolkit centered around services, data, and automation."
               description="The stack below reflects the systems I use to design APIs, process documents, stream events, and operate backend workloads."
             />
-            <div data-depth="-4" className="mt-14">
-              <TechClusterSection techItems={techStack} theme={theme} />
-            </div>
+          </div>
+          <div data-depth="-4" className="mt-14">
+            <TechClusterSection techItems={techStack} theme={theme} />
           </div>
         </section>
 
@@ -1058,7 +1051,7 @@ export function PortfolioPage() {
             <SectionHeading
               eyebrow="Projects"
               title="Backend projects focused on real workflows, automation, and operations."
-              description="Each project emphasizes API clarity, dependable data handling, and maintainable backend delivery rather than surface-level polish."
+              description="Each project is presented as a primary backend system, with clear problem framing, implementation detail, and the stack behind it."
             />
           </div>
 
@@ -1073,33 +1066,12 @@ export function PortfolioPage() {
 
         <CinematicStatementSection statement={cinematicStatements[1]} />
 
-        <section id="architecture" data-architecture-section className="section-space">
-          <div>
-            <div
-              data-architecture-copy
-              data-reveal
-              className="mx-auto max-w-4xl text-center will-change-transform"
-            >
-              <h2 className="text-balance text-4xl font-semibold tracking-[-0.035em] text-[color:var(--foreground-strong)] sm:text-5xl lg:text-[4.1rem] lg:leading-[0.98]">
-                System Architecture
-              </h2>
-              <p className="mx-auto mt-6 max-w-2xl text-balance text-base leading-8 text-[color:var(--foreground-soft)] sm:text-lg">
-                A high-level architecture of a scalable backend system designed for
-                AI-powered document processing and event-driven workflows.
-              </p>
-            </div>
-            <div className="mt-14">
-              <ArchitectureShowcase />
-            </div>
-          </div>
-        </section>
-
         <section id="experience" className="section-space">
           <div
             data-story-shell
             className="grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,0.85fr)]"
           >
-            <div data-reveal className="glass-panel p-7 sm:p-9">
+            <div data-reveal className="glass-panel radius-panel p-7 sm:p-9">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
@@ -1141,7 +1113,7 @@ export function PortfolioPage() {
 
         <section id="education" className="section-space">
           <div data-story-shell className="grid gap-6 lg:grid-cols-2">
-            <div data-reveal className="glass-panel p-7 sm:p-9">
+            <div data-reveal className="glass-panel radius-panel p-7 sm:p-9">
               <div className="flex items-center gap-3 text-[color:var(--accent-text)]">
                 <UserRound className="h-5 w-5" />
                 <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
@@ -1171,7 +1143,7 @@ export function PortfolioPage() {
               </div>
             </div>
 
-            <div data-reveal className="glass-panel p-7 sm:p-9">
+            <div data-reveal className="glass-panel radius-panel p-7 sm:p-9">
               <div className="flex items-center gap-3 text-[color:var(--accent-text)]">
                 <ScrollText className="h-5 w-5" />
                 <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
@@ -1202,15 +1174,19 @@ export function PortfolioPage() {
           <div
             data-reveal
             data-story-shell
-            className="glass-panel overflow-hidden p-7 sm:p-9 lg:p-11"
+            className="glass-panel radius-panel overflow-hidden p-7 sm:p-9 lg:p-11"
           >
             <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(320px,1fr)]">
               <div>
                 <SectionHeading
                   eyebrow="Contact"
-                  title="Available for backend engineering roles and product-focused collaborations."
-                  description="If you need a backend engineer who cares about system design, maintainable APIs, and AI-enabled workflows, this portfolio is built to start that conversation."
+                  title="Open to backend roles and collaborations."
+                  description="Reach out for backend engineering opportunities or product collaboration."
+                  variant="compact"
                 />
+                <p className="mt-6 max-w-xl text-base leading-8 text-[color:var(--foreground-soft)]">
+                  Available for backend-focused work and collaboration.
+                </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
                   <a
@@ -1235,7 +1211,7 @@ export function PortfolioPage() {
                 </div>
               </div>
 
-              <div className="grid gap-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
                 <ContactCard
                   href="tel:9290797555"
                   label="Phone"
@@ -1256,7 +1232,7 @@ export function PortfolioPage() {
                 />
                 <ContactCard
                   href="https://github.com/BSampathKumar2004"
-                  label="Github"
+                  label="GitHub"
                   value="https://github.com/BSampathKumar2004"
                   icon={GithubIcon}
                 />

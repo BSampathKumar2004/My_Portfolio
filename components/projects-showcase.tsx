@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState, type MutableRefObject } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import {
+  X,
   ArrowLeft,
   ArrowRight,
   CalendarRange,
+  ExternalLink,
   FileSearch,
+  GithubIcon,
   RadioTower,
 } from "lucide-react";
 import type { ProjectItem } from "@/lib/portfolio-data";
@@ -40,6 +44,10 @@ export function ProjectsShowcase({
   const activeIndexRef = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [architectureIndex, setArchitectureIndex] = useState<number | null>(null);
+
+  const activeArchitectureProject =
+    architectureIndex === null ? null : projects[architectureIndex];
 
   const getCardTargetOffset = (card: HTMLElement, viewport: HTMLDivElement) =>
     Math.max(0, card.offsetLeft - (viewport.clientWidth - card.clientWidth) / 2);
@@ -73,6 +81,43 @@ export function ProjectsShowcase({
       mediaQuery.removeEventListener("change", syncViewportMode);
     };
   }, []);
+
+  useEffect(() => {
+    const lenis = lenisRef.current;
+
+    if (!lenis) {
+      return;
+    }
+
+    if (architectureIndex === null) {
+      lenis.start();
+      return;
+    }
+
+    lenis.stop();
+
+    return () => {
+      lenis.start();
+    };
+  }, [architectureIndex, lenisRef]);
+
+  useEffect(() => {
+    if (architectureIndex === null) {
+      return;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setArchitectureIndex(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [architectureIndex]);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -148,9 +193,9 @@ export function ProjectsShowcase({
           const proximity = Math.max(0, 1 - distance / focusSpan());
 
           gsap.set(card, {
-            scale: 0.89 + proximity * 0.14,
-            y: -20 * proximity,
-            opacity: 0.38 + proximity * 0.62,
+            scale: 0.93 + proximity * 0.08,
+            y: -12 * proximity,
+            opacity: 0.62 + proximity * 0.38,
             zIndex: Math.round(10 + proximity * 20),
             force3D: true,
           });
@@ -335,8 +380,8 @@ export function ProjectsShowcase({
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div className="max-w-lg">
           <p className="text-sm leading-7 text-[color:var(--foreground-soft)]">
-            Scroll to move through the projects horizontally, or use the controls to
-            focus on each build individually.
+            Scroll to move through the systems horizontally, or use the controls to
+            focus on each backend build individually.
           </p>
         </div>
 
@@ -394,9 +439,7 @@ export function ProjectsShowcase({
                 ref={(node) => {
                   cardRefs.current[index] = node;
                 }}
-                data-cursor-reactive
-                data-cursor-reactive-intensity="0.9"
-                className={`group glass-panel relative flex w-[84vw] max-w-[36rem] shrink-0 snap-center flex-col overflow-hidden rounded-[2rem] p-6 transition-[border-color,box-shadow] duration-500 ease-out will-change-transform md:w-[32rem] lg:w-[36rem] lg:cursor-pointer ${
+                className={`group glass-panel interactive-lift relative flex min-h-[35rem] w-[86vw] max-w-[39rem] shrink-0 snap-center flex-col overflow-hidden rounded-[2rem] p-6 transition-[border-color,box-shadow] duration-500 ease-out will-change-transform md:w-[35rem] md:p-7 lg:w-[39rem] lg:p-8 ${
                   isActive
                     ? "border-[color:var(--accent-border)] shadow-[var(--surface-shadow-hover)]"
                     : "border-[color:var(--soft-border)]"
@@ -406,10 +449,7 @@ export function ProjectsShowcase({
               >
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-                <div
-                  data-cursor-reactive-inner
-                  className="flex h-full flex-col transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.012]"
-                >
+                <div className="flex h-full flex-col">
                   <div className="flex items-start justify-between gap-4">
                     <div className="theme-icon-panel rounded-2xl p-3">
                       <Icon className="h-5 w-5" />
@@ -427,19 +467,76 @@ export function ProjectsShowcase({
                     {project.description}
                   </p>
 
-                  <p className="theme-surface mt-6 rounded-3xl p-4 text-sm leading-7 text-[color:var(--muted)]">
-                    {project.outcome}
-                  </p>
+                  <div className="mt-7">
+                    <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
+                      What It Solves
+                    </p>
+                    <p className="theme-surface mt-3 rounded-3xl p-4 text-sm leading-7 text-[color:var(--foreground-soft)]">
+                      {project.outcome}
+                    </p>
+                  </div>
 
-                  <div className="mt-6 flex flex-wrap gap-2">
-                    {project.technologies.map((technology) => (
-                      <span
-                        key={technology}
-                        className="theme-pill rounded-full px-3 py-1 text-sm"
+                  <div className="mt-7">
+                    <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
+                      Tech Stack
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {project.technologies.map((technology) => (
+                        <span
+                          key={technology}
+                          className="theme-pill rounded-full px-3 py-1 text-sm"
+                        >
+                          {technology}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-auto pt-8">
+                    <div className="flex flex-wrap gap-3">
+                      {project.repositoryUrl ? (
+                        <a
+                          href={project.repositoryUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="interactive-button theme-button-secondary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium"
+                        >
+                          GitHub Repository
+                          <GithubIcon className="h-4 w-4" />
+                        </a>
+                      ) : (
+                        <span className="theme-button-secondary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium opacity-80">
+                          GitHub Repository
+                          <GithubIcon className="h-4 w-4" />
+                        </span>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setArchitectureIndex(index)}
+                        className="interactive-button theme-button-primary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium"
                       >
-                        {technology}
-                      </span>
-                    ))}
+                        View Architecture
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+
+                      {project.projectUrl ? (
+                        <a
+                          href={project.projectUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="interactive-button theme-button-accent inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium"
+                        >
+                          {project.projectLabel ?? "Project Live Link"}
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      ) : (
+                        <span className="theme-button-accent inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium opacity-80">
+                          Project Live Link
+                          <ExternalLink className="h-4 w-4" />
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </article>
@@ -463,6 +560,67 @@ export function ProjectsShowcase({
           />
         ))}
       </div>
+
+      <AnimatePresence>
+        {activeArchitectureProject ? (
+          <motion.div
+            className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/55 px-4 py-8 backdrop-blur-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setArchitectureIndex(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.985 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="glass-panel relative w-full max-w-3xl overflow-hidden rounded-[2rem] p-6 sm:p-8"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setArchitectureIndex(null)}
+                className="interactive-button theme-button-secondary absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full"
+                aria-label="Close architecture details"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              <div className="pr-12">
+                <p className="text-xs uppercase tracking-[0.26em] text-[color:var(--muted)]">
+                  Architecture Reference
+                </p>
+                <h3 className="mt-5 text-balance text-2xl font-semibold tracking-[-0.03em] text-[color:var(--foreground-strong)] sm:text-[2rem]">
+                  {activeArchitectureProject.title}
+                </h3>
+                <p className="mt-3 text-lg text-[color:var(--accent-text)]">
+                  {activeArchitectureProject.architectureTitle}
+                </p>
+                <p className="mt-6 max-w-2xl text-base leading-8 text-[color:var(--foreground-soft)]">
+                  {activeArchitectureProject.architectureDescription}
+                </p>
+              </div>
+
+              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                {activeArchitectureProject.architectureFlow.map((step, index) => (
+                  <div
+                    key={`${activeArchitectureProject.title}-${step}`}
+                    className="theme-surface rounded-[1.5rem] p-4"
+                  >
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-[color:var(--muted)]">
+                      Step {index + 1}
+                    </p>
+                    <p className="mt-2 text-sm font-medium leading-6 text-[color:var(--foreground-strong)] sm:text-base">
+                      {step}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }

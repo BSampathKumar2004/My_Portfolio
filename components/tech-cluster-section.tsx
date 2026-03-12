@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Float, Html, Sparkles } from "@react-three/drei";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import * as THREE from "three";
 import type { TechItem } from "@/lib/portfolio-data";
 
@@ -11,18 +12,44 @@ type TechClusterSectionProps = {
   theme: "dark" | "light";
 };
 
+function CanvasLayoutSync() {
+  const { gl, invalidate, size } = useThree();
+
+  useEffect(() => {
+    const syncLayout = () => {
+      gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+      invalidate();
+      ScrollTrigger.refresh();
+    };
+
+    const frame = window.requestAnimationFrame(() => {
+      syncLayout();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [gl, invalidate, size.height, size.width]);
+
+  return null;
+}
+
 function ClusterScene({
   techItems,
   activeName,
   onHover,
+  onHoverEnd,
+  onSelect,
   theme,
 }: {
   techItems: TechItem[];
   activeName: string;
   onHover: (item: TechItem) => void;
+  onHoverEnd: () => void;
+  onSelect: (item: TechItem) => void;
   theme: "dark" | "light";
 }) {
   const groupRef = useRef<THREE.Group>(null);
+  const meshRefs = useRef<(THREE.Mesh | null)[]>([]);
+  const materialRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
   const positions = useMemo(
     () =>
       techItems.map((_, index) => {
@@ -62,11 +89,34 @@ function ClusterScene({
       0.04,
     );
     state.camera.lookAt(0, 0, 0);
+
+    techItems.forEach((tech, index) => {
+      const isActive = tech.name === activeName;
+      const mesh = meshRefs.current[index];
+      const material = materialRefs.current[index];
+
+      if (mesh) {
+        const nextScale = THREE.MathUtils.lerp(
+          mesh.scale.x,
+          isActive ? 1.26 : 1,
+          0.12,
+        );
+        mesh.scale.setScalar(nextScale);
+      }
+
+      if (material) {
+        material.emissiveIntensity = THREE.MathUtils.lerp(
+          material.emissiveIntensity,
+          isActive ? 0.45 : 0.16,
+          0.12,
+        );
+      }
+    });
   });
 
   return (
     <>
-      <group ref={groupRef}>
+      <group ref={groupRef} onPointerLeave={onHoverEnd}>
         {techItems.map((tech, index) => {
           const isActive = tech.name === activeName;
 
@@ -79,12 +129,18 @@ function ClusterScene({
               position={positions[index]}
             >
               <mesh
-                scale={isActive ? 1.28 : 1}
+                ref={(node) => {
+                  meshRefs.current[index] = node;
+                }}
                 onPointerOver={() => onHover(tech)}
-                onClick={() => onHover(tech)}
+                onPointerOut={onHoverEnd}
+                onClick={() => onSelect(tech)}
               >
                 <icosahedronGeometry args={[0.35, 1]} />
                 <meshStandardMaterial
+                  ref={(node) => {
+                    materialRefs.current[index] = node;
+                  }}
                   color={tech.color}
                   emissive={tech.color}
                   emissiveIntensity={isActive ? 0.45 : 0.16}
@@ -125,15 +181,30 @@ export function TechClusterSection({
   techItems,
   theme,
 }: TechClusterSectionProps) {
-  const [activeTech, setActiveTech] = useState<TechItem>(techItems[0]);
+  const [selectedTech, setSelectedTech] = useState<TechItem>(techItems[0]);
+  const [hoveredTechName, setHoveredTechName] = useState<string | null>(null);
+  const activeTech = useMemo(
+    () =>
+      techItems.find((tech) => tech.name === hoveredTechName) ?? selectedTech,
+    [hoveredTechName, selectedTech, techItems],
+  );
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-center">
-      <div className="glass-panel relative h-[420px] overflow-hidden p-0 sm:h-[520px]">
+      <div
+        className="glass-panel radius-panel relative h-[420px] overflow-hidden p-0 sm:h-[520px]"
+        onPointerLeave={() => setHoveredTechName(null)}
+      >
         <div className="theme-pill absolute left-6 top-6 z-10 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.28em] backdrop-blur-md">
           Hover to inspect the stack
         </div>
-        <Canvas camera={{ position: [0, 0, 7], fov: 42 }}>
+        <Canvas
+          camera={{ position: [0, 0, 7], fov: 42 }}
+          dpr={[1, 1.75]}
+          gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+          resize={{ debounce: { resize: 0, scroll: 0 }, offsetSize: true }}
+        >
+          <CanvasLayoutSync />
           <color attach="background" args={[theme === "light" ? "#eff6ff" : "#030712"]} />
           <fog
             attach="fog"
@@ -158,14 +229,19 @@ export function TechClusterSection({
           <ClusterScene
             techItems={techItems}
             activeName={activeTech.name}
-            onHover={setActiveTech}
+            onHover={(tech) => setHoveredTechName(tech.name)}
+            onHoverEnd={() => setHoveredTechName(null)}
+            onSelect={(tech) => {
+              setSelectedTech(tech);
+              setHoveredTechName(null);
+            }}
             theme={theme}
           />
         </Canvas>
       </div>
 
       <div className="space-y-5">
-        <div className="glass-panel p-6 sm:p-7">
+        <div className="glass-panel radius-panel p-6 sm:p-7">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-[color:var(--muted)]">
@@ -183,7 +259,7 @@ export function TechClusterSection({
           <p className="mt-5 text-base leading-7 text-[color:var(--foreground-soft)]">
             {activeTech.description}
           </p>
-          <p className="theme-surface mt-4 rounded-2xl p-4 text-sm leading-6 text-[color:var(--muted)]">
+          <p className="theme-surface radius-surface mt-4 p-4 text-sm leading-6 text-[color:var(--muted)]">
             {activeTech.detail}
           </p>
         </div>
@@ -193,9 +269,14 @@ export function TechClusterSection({
             <button
               key={tech.name}
               type="button"
-              onMouseEnter={() => setActiveTech(tech)}
-              onFocus={() => setActiveTech(tech)}
-              onClick={() => setActiveTech(tech)}
+              onMouseEnter={() => setHoveredTechName(tech.name)}
+              onMouseLeave={() => setHoveredTechName(null)}
+              onFocus={() => setHoveredTechName(tech.name)}
+              onBlur={() => setHoveredTechName(null)}
+              onClick={() => {
+                setSelectedTech(tech);
+                setHoveredTechName(null);
+              }}
               className={`rounded-full border px-4 py-2 text-sm transition-all ${
                 tech.name === activeTech.name
                   ? "border-[color:var(--accent-border)] bg-[color:var(--accent-surface)] text-[color:var(--accent-text)]"

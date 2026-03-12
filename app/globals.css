@@ -67,6 +67,11 @@
   --canvas-light-a: #dbeafe;
   --canvas-light-b: #38bdf8;
   --canvas-light-c: #22d3ee;
+  --radius-panel: 2rem;
+  --radius-card: 1.5rem;
+  --radius-surface: 1.25rem;
+  --radius-icon: 1rem;
+  --radius-grid-cell: 0.55rem;
 }
 
 [data-theme="light"] {
@@ -206,6 +211,26 @@ button {
 
 .section-space {
   @apply pt-32 sm:pt-40 lg:pt-48;
+}
+
+.radius-panel {
+  border-radius: var(--radius-panel);
+}
+
+.radius-card {
+  border-radius: var(--radius-card);
+}
+
+.radius-surface {
+  border-radius: var(--radius-surface);
+}
+
+.radius-icon {
+  border-radius: var(--radius-icon);
+}
+
+.radius-grid-cell {
+  border-radius: var(--radius-grid-cell);
 }
 
 .glass-panel {

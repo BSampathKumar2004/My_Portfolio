@@ -12,7 +12,7 @@ export function GitHubActivityGraph() {
   const weeks = 28;
 
   return (
-    <div className="glass-panel overflow-hidden p-6 sm:p-7">
+    <div className="glass-panel radius-panel overflow-hidden p-6 sm:p-7">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h3 className="text-lg font-semibold text-[color:var(--foreground-strong)]">
@@ -53,7 +53,7 @@ export function GitHubActivityGraph() {
                   return (
                     <div
                       key={`${week}-${day}`}
-                      className="aspect-square rounded-[0.35rem] border"
+                      className="radius-grid-cell aspect-square border"
                       style={{
                         borderColor: "var(--activity-border)",
                         backgroundColor: `var(--activity-level-${level})`,
@@ -75,7 +75,7 @@ export function GitHubActivityGraph() {
           {levels.map((level) => (
             <span
               key={level}
-              className="h-3 w-3 rounded-[0.25rem] border"
+              className="radius-grid-cell h-3 w-3 border"
               style={{
                 borderColor: "var(--activity-border)",
                 backgroundColor: `var(--activity-level-${level})`,
