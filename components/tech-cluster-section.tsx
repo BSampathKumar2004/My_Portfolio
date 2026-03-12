@@ -13,21 +13,35 @@ type TechClusterSectionProps = {
 };
 
 function CanvasLayoutSync() {
-  const { gl, invalidate, size } = useThree();
+  const { camera, gl, invalidate, size } = useThree();
 
   useEffect(() => {
+    let outerFrame = 0;
+    let innerFrame = 0;
+
     const syncLayout = () => {
       gl.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+
+      if ("aspect" in camera && size.height > 0) {
+        camera.aspect = size.width / size.height;
+        camera.updateProjectionMatrix();
+      }
+
       invalidate();
       ScrollTrigger.refresh();
     };
 
-    const frame = window.requestAnimationFrame(() => {
-      syncLayout();
+    outerFrame = window.requestAnimationFrame(() => {
+      innerFrame = window.requestAnimationFrame(() => {
+        syncLayout();
+      });
     });
 
-    return () => window.cancelAnimationFrame(frame);
-  }, [gl, invalidate, size.height, size.width]);
+    return () => {
+      window.cancelAnimationFrame(outerFrame);
+      window.cancelAnimationFrame(innerFrame);
+    };
+  }, [camera, gl, invalidate, size.height, size.width]);
 
   return null;
 }

@@ -265,8 +265,24 @@ export function PortfolioPage() {
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
     const media = gsap.matchMedia();
+    let refreshFrame = 0;
+    let refreshFrameNested = 0;
+
+    const scheduleScrollRefresh = () => {
+      window.cancelAnimationFrame(refreshFrame);
+      window.cancelAnimationFrame(refreshFrameNested);
+
+      refreshFrame = window.requestAnimationFrame(() => {
+        refreshFrameNested = window.requestAnimationFrame(() => {
+          ScrollTrigger.sort();
+          ScrollTrigger.refresh();
+        });
+      });
+    };
 
     const context = gsap.context(() => {
+      const heroSection = document.querySelector<HTMLElement>("[data-hero-section]");
+
       gsap.from("[data-hero]", {
         opacity: 0,
         y: 36,
@@ -275,6 +291,14 @@ export function PortfolioPage() {
         ease: "power3.out",
         clearProps: "opacity,transform",
         overwrite: "auto",
+        immediateRender: false,
+        scrollTrigger: heroSection
+          ? {
+              trigger: heroSection,
+              start: "top 82%",
+              toggleActions: "play none none reverse",
+            }
+          : undefined,
       });
 
       gsap.utils
@@ -489,7 +513,6 @@ export function PortfolioPage() {
         };
       });
 
-      const heroSection = document.querySelector<HTMLElement>("[data-hero-section]");
       const heroBadge = document.querySelector<HTMLElement>("[data-hero-badge]");
       const heroHeading = document.querySelector<HTMLElement>("[data-hero-heading]");
       const heroLead = gsap.utils.toArray<HTMLElement>("[data-hero-lead]");
@@ -666,13 +689,13 @@ export function PortfolioPage() {
       }),
     );
 
-    const handleWindowLoad = () => ScrollTrigger.refresh();
+    const handleWindowLoad = () => scheduleScrollRefresh();
 
     window.addEventListener("load", handleWindowLoad);
-    requestAnimationFrame(() => {
-      ScrollTrigger.sort();
-      ScrollTrigger.refresh();
+    void document.fonts?.ready.then(() => {
+      scheduleScrollRefresh();
     });
+    scheduleScrollRefresh();
 
     return () => {
       heroElementsRef.current = { lead: [], particles: [] };
@@ -680,6 +703,8 @@ export function PortfolioPage() {
       media.revert();
       context.revert();
       window.removeEventListener("load", handleWindowLoad);
+      window.cancelAnimationFrame(refreshFrame);
+      window.cancelAnimationFrame(refreshFrameNested);
       lenis.off("scroll", handleLenisScroll);
       lenis.destroy();
       gsap.ticker.remove(tick);

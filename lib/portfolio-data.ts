@@ -245,7 +245,7 @@ export const projects: ProjectItem[] = [
     outcome:
       "Built to turn unstructured documents into validated records without blocking the API layer, using asynchronous workers and durable data storage.",
     technologies: ["Python", "FastAPI", "PaddleOCR", "LLM", "PostgreSQL"],
-    repositoryUrl: "https://github.com/BSampathKumar2004",
+    repositoryUrl:"https://github.com/BSampathKumar2004",
     repositoryLabel: "GitHub Repository",
     architectureTitle: "Asynchronous document extraction pipeline",
     architectureDescription:
@@ -266,7 +266,7 @@ export const projects: ProjectItem[] = [
     outcome:
       "Centralized live-stream operations into service-driven APIs so scheduling, moderation, and media automation stay consistent across the workflow.",
     technologies: ["FastAPI", "YouTube API", "MoviePy"],
-    repositoryUrl: "https://github.com/BSampathKumar2004",
+    repositoryUrl: "https://github.com/BSampathKumar2004/YouTube_LiveStream",
     repositoryLabel: "GitHub Repository",
     architectureTitle: "Streaming operations orchestration backend",
     architectureDescription:
