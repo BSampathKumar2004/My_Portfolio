@@ -13,7 +13,9 @@ import {
   ExternalLink,
   FileSearch,
   GithubIcon,
+  ScanLine,
   RadioTower,
+  BotMessageSquare,
 } from "lucide-react";
 import type { ProjectItem } from "@/lib/portfolio-data";
 
@@ -27,6 +29,8 @@ const sliderEasing = (t: number) => 1 - Math.pow(1 - t, 4);
 
 const iconByProject: Record<string, typeof FileSearch> = {
   "AI Document Processing Pipeline": FileSearch,
+  "OMR Sheet Evaluation System": ScanLine,
+  "AI Interview Automation System": BotMessageSquare,
   "YouTube Live Streaming Backend System": RadioTower,
   "Hall Booking Management System": CalendarRange,
 };
@@ -106,6 +110,10 @@ export function ProjectsShowcase({
       return;
     }
 
+    const { body } = document;
+    const previousOverflow = body.style.overflow;
+    body.style.overflow = "hidden";
+
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setArchitectureIndex(null);
@@ -115,6 +123,7 @@ export function ProjectsShowcase({
     window.addEventListener("keydown", handleEscape);
 
     return () => {
+      body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleEscape);
     };
   }, [architectureIndex]);
@@ -501,12 +510,12 @@ export function ProjectsShowcase({
                           rel="noreferrer"
                           className="interactive-button theme-button-secondary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium"
                         >
-                          GitHub Repository
+                          {project.repositoryLabel ?? "GitHub Repository"}
                           <GithubIcon className="h-4 w-4" />
                         </a>
                       ) : (
                         <span className="theme-button-secondary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium opacity-80">
-                          GitHub Repository
+                          {project.repositoryLabel ?? "GitHub Repository"}
                           <GithubIcon className="h-4 w-4" />
                         </span>
                       )}
@@ -516,7 +525,7 @@ export function ProjectsShowcase({
                         onClick={() => setArchitectureIndex(index)}
                         className="interactive-button theme-button-primary inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium"
                       >
-                        View Architecture
+                        Project Architecture
                         <ArrowRight className="h-4 w-4" />
                       </button>
 
@@ -575,47 +584,57 @@ export function ProjectsShowcase({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.985 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="glass-panel relative w-full max-w-3xl overflow-hidden rounded-[2rem] p-6 sm:p-8"
+              className="glass-panel relative flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-[2rem]"
               onClick={(event) => event.stopPropagation()}
             >
-              <button
-                type="button"
-                onClick={() => setArchitectureIndex(null)}
-                className="interactive-button theme-button-secondary absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full"
-                aria-label="Close architecture details"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="sticky top-0 z-10 border-b border-white/10 bg-[color:var(--surface)]/95 px-6 pb-5 pt-6 backdrop-blur-md sm:px-8 sm:pb-6 sm:pt-8">
+                <button
+                  type="button"
+                  onClick={() => setArchitectureIndex(null)}
+                  className="interactive-button theme-button-secondary absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full sm:right-6 sm:top-6"
+                  aria-label="Close architecture details"
+                >
+                  <X className="h-4 w-4" />
+                </button>
 
-              <div className="pr-12">
-                <p className="text-xs uppercase tracking-[0.26em] text-[color:var(--muted)]">
-                  Architecture Reference
-                </p>
-                <h3 className="mt-5 text-balance text-2xl font-semibold tracking-[-0.03em] text-[color:var(--foreground-strong)] sm:text-[2rem]">
-                  {activeArchitectureProject.title}
-                </h3>
-                <p className="mt-3 text-lg text-[color:var(--accent-text)]">
-                  {activeArchitectureProject.architectureTitle}
-                </p>
-                <p className="mt-6 max-w-2xl text-base leading-8 text-[color:var(--foreground-soft)]">
-                  {activeArchitectureProject.architectureDescription}
-                </p>
+                <div className="pr-12">
+                  <p className="text-xs uppercase tracking-[0.26em] text-[color:var(--muted)]">
+                    Architecture Reference
+                  </p>
+                  <h3 className="mt-5 text-balance text-2xl font-semibold tracking-[-0.03em] text-[color:var(--foreground-strong)] sm:text-[2rem]">
+                    {activeArchitectureProject.title}
+                  </h3>
+                  <p className="mt-3 text-lg text-[color:var(--accent-text)]">
+                    {activeArchitectureProject.architectureTitle}
+                  </p>
+                </div>
               </div>
 
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {activeArchitectureProject.architectureFlow.map((step, index) => (
-                  <div
-                    key={`${activeArchitectureProject.title}-${step}`}
-                    className="theme-surface rounded-[1.5rem] p-4"
-                  >
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-[color:var(--muted)]">
-                      Step {index + 1}
-                    </p>
-                    <p className="mt-2 text-sm font-medium leading-6 text-[color:var(--foreground-strong)] sm:text-base">
-                      {step}
-                    </p>
-                  </div>
-                ))}
+              <div
+                data-lenis-prevent=""
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth px-6 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-6"
+                onWheelCapture={(event) => event.stopPropagation()}
+                onTouchMoveCapture={(event) => event.stopPropagation()}
+              >
+                <p className="max-w-2xl text-base leading-8 text-[color:var(--foreground-soft)]">
+                  {activeArchitectureProject.architectureDescription}
+                </p>
+
+                <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                  {activeArchitectureProject.architectureFlow.map((step, index) => (
+                    <div
+                      key={`${activeArchitectureProject.title}-${step}`}
+                      className="theme-surface rounded-[1.5rem] p-4"
+                    >
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-[color:var(--muted)]">
+                        Step {index + 1}
+                      </p>
+                      <p className="mt-2 text-sm font-medium leading-6 text-[color:var(--foreground-strong)] sm:text-base">
+                        {step}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           </motion.div>

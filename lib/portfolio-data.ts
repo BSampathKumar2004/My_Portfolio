@@ -84,7 +84,7 @@ export const stats: StatItem[] = [
     description: "Building backend systems and production-ready APIs.",
   },
   {
-    value: 3,
+    value: 5,
     suffix: "+",
     label: "Backend Projects",
     description: "Delivered backend products across automation and operations.",
@@ -257,6 +257,59 @@ export const projects: ProjectItem[] = [
       "OCR Worker",
       "LLM Extraction Worker",
       "PostgreSQL Storage",
+    ],
+  },
+  {
+    title: "OMR Sheet Evaluation System",
+    description:
+      "Developed a backend system that analyzes scanned OMR sheets and extracts selected answers using computer vision techniques.",
+    outcome:
+      "Computer vision backend system that detects and evaluates OMR answer sheets automatically using predefined bubble coordinates and image processing techniques.",
+    technologies: ["Python", "FastAPI", "OpenCV", "NumPy", "Image Processing"],
+    repositoryUrl: "https://github.com/BSampathKumar2004",
+    repositoryLabel: "GitHub Repository",
+    architectureTitle: "OMR image processing and answer evaluation pipeline",
+    architectureDescription:
+      "Uploaded OMR sheet images move through preprocessing and alignment, then predefined bubble coordinates and pixel-intensity analysis are used to detect marked answers, compare them against an answer key, and generate a final score reliably even with mild alignment or lighting variation.",
+    architectureFlow: [
+      "Upload OMR Sheet Image",
+      "Image Preprocessing and Alignment",
+      "Bubble Detection Using Predefined Coordinates",
+      "Filled Bubble Detection via Pixel Intensity Analysis",
+      "Answer Extraction and Answer Key Comparison",
+      "Score Calculation and Result Generation",
+    ],
+  },
+  {
+    title: "AI Interview Automation System",
+    description:
+      "Developed an automated technical interview backend system that dynamically generates interview questions and evaluates candidate responses using large language models.",
+    outcome:
+      "AI-powered backend system that generates interview questions, converts them into audio, evaluates candidate answers, and produces automated interview reports.",
+    technologies: [
+      "Python",
+      "FastAPI",
+      "Kafka",
+      "LLM Integration",
+      "Text-to-Speech",
+      "Event-driven Architecture",
+    ],
+    repositoryUrl: "https://github.com/BSampathKumar2004",
+    repositoryLabel: "GitHub Repository",
+    architectureTitle: "Event-driven AI interview orchestration pipeline",
+    architectureDescription:
+      "Interview configuration is collected in the frontend and published into Kafka, where backend services consume events to generate questions with an LLM, convert prompts to audio, collect candidate responses, evaluate answers, calculate scores, and return a detailed interview report.",
+    architectureFlow: [
+      "Frontend Collects Interview Configuration",
+      "Configuration Sent to Backend",
+      "Data Published to Kafka Event Stream",
+      "Backend Service Consumes Event",
+      "LLM Generates Interview Questions",
+      "Questions Converted to Audio Using Text-to-Speech",
+      "Candidate Responses Collected from Frontend",
+      "LLM Evaluates Answers",
+      "Score Calculated and Report Generated",
+      "Interview Report Returned to Frontend",
     ],
   },
   {
