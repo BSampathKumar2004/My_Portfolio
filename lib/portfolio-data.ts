@@ -376,16 +376,19 @@ export const educationItems: EducationItem[] = [
     title: "B.Tech Computer Science",
     institution: "CT University",
     score: "CGPA 7.4",
+    proofUrl:"/8th_Sem_Result.PDF"
   },
   {
     title: "Intermediate (MPC)",
     institution: "Pragathi Inter College, Kakinada",
     score: "85%",
+    proofUrl:"/Inter_Certificate.jpeg"
   },
   {
     title: "SSC",
     institution: "Sama School, Kakinada",
     score: "CGPA 9.2",
+    proofUrl:"/10th_Certificate.jpeg"
   },
 ];
 
@@ -398,6 +401,7 @@ export const certifications: CertificationItem[] = [
   {
     title: "Web Development",
     issuer: "Internshala",
+    certificateUrl: "Full Stack Web Development with AI Training - Certificate of Completion.pdf"
   },
   {
     title: "Blockchain Developer",
