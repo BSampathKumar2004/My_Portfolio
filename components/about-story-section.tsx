@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { AboutStoryStep } from "@/lib/portfolio-data";
@@ -10,7 +10,7 @@ type AboutStorySectionProps = {
   steps: AboutStoryStep[];
 };
 
-export function AboutStorySection({
+export const AboutStorySection = memo(function AboutStorySection({
   getPinnedOffset,
   steps,
 }: AboutStorySectionProps) {
@@ -112,4 +112,4 @@ export function AboutStorySection({
       </div>
     </div>
   );
-}
+});

@@ -1,9 +1,10 @@
 "use client";
 
+import { memo } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
-export function HeroScene() {
+export const HeroScene = memo(function HeroScene() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 18 }}
@@ -30,4 +31,4 @@ export function HeroScene() {
       </div>
     </motion.div>
   );
-}
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { CinematicStatement } from "@/lib/portfolio-data";
@@ -9,7 +9,7 @@ type CinematicStatementSectionProps = {
   statement: CinematicStatement;
 };
 
-export function CinematicStatementSection({
+export const CinematicStatementSection = memo(function CinematicStatementSection({
   statement,
 }: CinematicStatementSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -109,4 +109,4 @@ export function CinematicStatementSection({
       </div>
     </section>
   );
-}
+});

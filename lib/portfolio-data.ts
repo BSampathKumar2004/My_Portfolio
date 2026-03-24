@@ -266,7 +266,7 @@ export const projects: ProjectItem[] = [
     outcome:
       "Computer vision backend system that detects and evaluates OMR answer sheets automatically using predefined bubble coordinates and image processing techniques.",
     technologies: ["Python", "FastAPI", "OpenCV", "NumPy", "Image Processing"],
-    repositoryUrl: "https://github.com/BSampathKumar2004",
+    repositoryUrl: "https://github.com/BSampathKumar2004/OMR_Evalution.git",
     repositoryLabel: "GitHub Repository",
     architectureTitle: "OMR image processing and answer evaluation pipeline",
     architectureDescription:

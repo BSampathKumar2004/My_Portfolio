@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type MutableRefObject } from "react";
+import { memo, useEffect, useRef, useState, type MutableRefObject } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -35,7 +35,7 @@ const iconByProject: Record<string, typeof FileSearch> = {
   "Hall Booking Management System": CalendarRange,
 };
 
-export function ProjectsShowcase({
+export const ProjectsShowcase = memo(function ProjectsShowcase({
   getPinnedOffset,
   lenisRef,
   projects,
@@ -529,6 +529,9 @@ export function ProjectsShowcase({
                         <ArrowRight className="h-4 w-4" />
                       </button>
 
+                      {/*
+                        Temporarily hiding the live-link CTA until real project URLs are ready.
+                        Restore this block once `project.projectUrl` values are available.
                       {project.projectUrl ? (
                         <a
                           href={project.projectUrl}
@@ -545,6 +548,7 @@ export function ProjectsShowcase({
                           <ExternalLink className="h-4 w-4" />
                         </span>
                       )}
+                      */}
                     </div>
                   </div>
                 </div>
@@ -642,4 +646,4 @@ export function ProjectsShowcase({
       </AnimatePresence>
     </div>
   );
-}
+});

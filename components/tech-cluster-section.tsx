@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Float, Html, Sparkles } from "@react-three/drei";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -191,21 +191,48 @@ function ClusterScene({
   );
 }
 
-export function TechClusterSection({
+export const TechClusterSection = memo(function TechClusterSection({
   techItems,
   theme,
 }: TechClusterSectionProps) {
+  const canvasShellRef = useRef<HTMLDivElement>(null);
   const [selectedTech, setSelectedTech] = useState<TechItem>(techItems[0]);
   const [hoveredTechName, setHoveredTechName] = useState<string | null>(null);
+  const [isCanvasActive, setIsCanvasActive] = useState(true);
   const activeTech = useMemo(
     () =>
       techItems.find((tech) => tech.name === hoveredTechName) ?? selectedTech,
     [hoveredTechName, selectedTech, techItems],
   );
 
+  useEffect(() => {
+    const shell = canvasShellRef.current;
+
+    if (!shell) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsCanvasActive(entry.isIntersecting);
+      },
+      {
+        rootMargin: "240px 0px",
+        threshold: 0.01,
+      },
+    );
+
+    observer.observe(shell);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-center">
       <div
+        ref={canvasShellRef}
         className="glass-panel radius-panel relative h-[420px] overflow-hidden p-0 sm:h-[520px]"
         onPointerLeave={() => setHoveredTechName(null)}
       >
@@ -213,10 +240,11 @@ export function TechClusterSection({
           Hover to inspect the stack
         </div>
         <Canvas
+          frameloop={isCanvasActive ? "always" : "never"}
           camera={{ position: [0, 0, 7], fov: 42 }}
           dpr={[1, 1.75]}
           gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-          resize={{ debounce: { resize: 0, scroll: 0 }, offsetSize: true }}
+          resize={{ debounce: { resize: 120, scroll: 120 }, offsetSize: true }}
         >
           <CanvasLayoutSync />
           <color attach="background" args={[theme === "light" ? "#eff6ff" : "#030712"]} />
@@ -304,4 +332,4 @@ export function TechClusterSection({
       </div>
     </div>
   );
-}
+});

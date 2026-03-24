@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useInView } from "framer-motion";
 
 type CountUpProps = {
@@ -9,7 +9,7 @@ type CountUpProps = {
   duration?: number;
 };
 
-export function CountUp({
+export const CountUp = memo(function CountUp({
   value,
   suffix = "",
   duration = 1.2,
@@ -46,4 +46,4 @@ export function CountUp({
       {suffix}
     </span>
   );
-}
+});

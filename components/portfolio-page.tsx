@@ -1,5 +1,8 @@
 "use client";
+import dynamic from "next/dynamic";
 import {
+  memo,
+  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -41,14 +44,28 @@ import { AboutStorySection } from "@/components/about-story-section";
 import { BackendFlowStory } from "@/components/backend-flow-story";
 import { CinematicStatementSection } from "@/components/cinematic-statement-section";
 import { CountUp } from "@/components/count-up";
-import { GitHubActivityGraph } from "@/components/github-activity-graph";
 import { HeroScene } from "@/components/hero-scene";
 import { ProjectsShowcase } from "@/components/projects-showcase";
 import { SectionHeading } from "@/components/section-heading";
-import { TechClusterSection } from "@/components/tech-cluster-section";
 import { TypingRoles } from "@/components/typing-roles";
 
-function ContactCard({
+const TechClusterSection = dynamic(
+  () =>
+    import("@/components/tech-cluster-section").then((module) => ({
+      default: module.TechClusterSection,
+    })),
+  { ssr: false },
+);
+
+const GitHubActivityGraph = dynamic(
+  () =>
+    import("@/components/github-activity-graph").then((module) => ({
+      default: module.GitHubActivityGraph,
+    })),
+  { ssr: false },
+);
+
+const ContactCard = memo(function ContactCard({
   href,
   label,
   value,
@@ -86,7 +103,7 @@ function ContactCard({
       <ArrowRight className="h-4 w-4 shrink-0 text-[color:var(--muted)] transition-all duration-300 group-hover:translate-x-1 group-hover:text-[color:var(--accent)]" />
     </motion.a>
   );
-}
+});
 
 const navScrollEasing = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -144,7 +161,9 @@ export function PortfolioPage() {
     }
 
     activeSectionRef.current = sectionId;
-    setActiveSection(sectionId);
+    startTransition(() => {
+      setActiveSection(sectionId);
+    });
   }, []);
   const resetHeroVisualState = useCallback(() => {
     const { badge, heading, lead, summary, highlights, copy, avatar, particles } =
@@ -461,7 +480,11 @@ export function PortfolioPage() {
               duration: 0.55,
               ease: "power3.out",
             });
-            const innerScaleTo = gsap.quickTo(inner, "scale", {
+            const innerScaleXTo = gsap.quickTo(inner, "scaleX", {
+              duration: 0.55,
+              ease: "power3.out",
+            });
+            const innerScaleYTo = gsap.quickTo(inner, "scaleY", {
               duration: 0.55,
               ease: "power3.out",
             });
@@ -484,7 +507,8 @@ export function PortfolioPage() {
               rotateXTo(-normalizedY * 3.2 * intensity);
               innerXTo(normalizedX * 8 * intensity);
               innerYTo(normalizedY * 8 * intensity);
-              innerScaleTo(1.01);
+              innerScaleXTo(1.01);
+              innerScaleYTo(1.01);
             };
 
             const handleLeave = () => {
@@ -492,7 +516,8 @@ export function PortfolioPage() {
               rotateYTo(0);
               innerXTo(0);
               innerYTo(0);
-              innerScaleTo(1);
+              innerScaleXTo(1);
+              innerScaleYTo(1);
             };
 
             element.addEventListener("mousemove", handleMove);
@@ -504,7 +529,7 @@ export function PortfolioPage() {
               gsap.set(element, {
                 clearProps: "rotationX,rotationY,transformPerspective",
               });
-              gsap.set(inner, { clearProps: "x,y,scale" });
+              gsap.set(inner, { clearProps: "x,y,scaleX,scaleY" });
             });
           });
 
@@ -1131,7 +1156,7 @@ export function PortfolioPage() {
             </div>
 
             <div data-reveal data-depth="-3" className="space-y-6">
-              <GitHubActivityGraph />
+              <GitHubActivityGraph theme={theme} />
             </div>
           </div>
         </section>

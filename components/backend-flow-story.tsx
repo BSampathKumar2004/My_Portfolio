@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { BackendFlowStep } from "@/lib/portfolio-data";
@@ -10,7 +10,7 @@ type BackendFlowStoryProps = {
   steps: BackendFlowStep[];
 };
 
-export function BackendFlowStory({
+export const BackendFlowStory = memo(function BackendFlowStory({
   getPinnedOffset,
   steps,
 }: BackendFlowStoryProps) {
@@ -184,4 +184,4 @@ export function BackendFlowStory({
       </div>
     </section>
   );
-}
+});
