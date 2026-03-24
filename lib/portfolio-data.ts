@@ -36,12 +36,14 @@ export type ProjectItem = {
 export type CertificationItem = {
   title: string;
   issuer: string;
+  certificateUrl?: string;
 };
 
 export type EducationItem = {
   title: string;
   institution: string;
   score: string;
+  proofUrl?: string;
 };
 
 export type AboutStoryStep = {
@@ -391,9 +393,15 @@ export const certifications: CertificationItem[] = [
   {
     title: "Machine Learning & Deep Learning",
     issuer: "IBM SkillBuild",
+    certificateUrl: "/IBM(AI&DS).pdf",
   },
   {
     title: "Web Development",
     issuer: "Internshala",
+  },
+  {
+    title: "Blockchain Developer",
+    issuer: "IBM SkillBuild",
+    certificateUrl: "/IBM(BlockChain).pdf",
   },
 ];

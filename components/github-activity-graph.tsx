@@ -1,6 +1,6 @@
 "use client";
 
-import { cloneElement, memo, useEffect, useMemo, useState } from "react";
+import { cloneElement, memo, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityCalendar, type Activity } from "react-activity-calendar";
 
 type ThemeMode = "dark" | "light";
@@ -106,9 +106,13 @@ export const GitHubActivityGraph = memo(function GitHubActivityGraph({
   theme,
   username = DEFAULT_USERNAME,
 }: GitHubActivityGraphProps) {
+  const calendarFrameRef = useRef<HTMLDivElement>(null);
+  const calendarMeasureRef = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<GitHubContributionPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [calendarScale, setCalendarScale] = useState(1);
+  const [calendarHeight, setCalendarHeight] = useState<number | null>(null);
 
   const dateFormatter = useMemo(
     () =>
@@ -219,6 +223,58 @@ export const GitHubActivityGraph = memo(function GitHubActivityGraph({
     };
   }, [username]);
 
+  useEffect(() => {
+    const frame = calendarFrameRef.current;
+    const measure = calendarMeasureRef.current;
+
+    if (!frame || !measure) {
+      return;
+    }
+
+    let frameId = 0;
+
+    const syncCalendarSize = () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        const availableWidth = frame.clientWidth;
+        const naturalWidth = measure.scrollWidth;
+        const naturalHeight = measure.scrollHeight;
+        const nextScale =
+          availableWidth > 0 && naturalWidth > 0
+            ? Math.min(1, availableWidth / naturalWidth)
+            : 1;
+
+        setCalendarScale((currentScale) =>
+          Math.abs(currentScale - nextScale) < 0.01 ? currentScale : nextScale,
+        );
+        setCalendarHeight((currentHeight) => {
+          const nextHeight = Math.round(naturalHeight * nextScale);
+
+          if (currentHeight !== null && Math.abs(currentHeight - nextHeight) < 1) {
+            return currentHeight;
+          }
+
+          return nextHeight;
+        });
+      });
+    };
+
+    const observer = new ResizeObserver(syncCalendarSize);
+    observer.observe(frame);
+    observer.observe(measure);
+    syncCalendarSize();
+
+    return () => {
+      observer.disconnect();
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
+  }, [data, isLoading, theme]);
+
   return (
     <div className="glass-panel radius-panel overflow-hidden p-6 sm:p-7">
       <div className="flex items-center justify-between gap-4">
@@ -236,49 +292,60 @@ export const GitHubActivityGraph = memo(function GitHubActivityGraph({
         </div>
       </div>
 
-      <div className="mt-8">
-        <ActivityCalendar
-          data={data?.contributions ?? loadingSkeleton}
-          loading={isLoading}
-          colorScheme={theme}
-          theme={activityTheme}
-          blockMargin={4}
-          blockRadius={4}
-          blockSize={12}
-          fontSize={12}
-          showWeekdayLabels={weekdayLabels}
-          weekStart={0}
-          labels={{
-            totalCount: "{{count}} contributions in the last year",
-            legend: {
-              less: "Less",
-              more: "More",
-            },
-          }}
-          tooltips={tooltipConfig}
-          style={{
-            color: "var(--muted)",
-          }}
-          renderBlock={(block, activity) =>
-            cloneElement(block, {
-              stroke: "var(--activity-border)",
-              strokeWidth: 1,
-              className: [
-                block.props.className,
-                "transition-opacity duration-200",
-              ]
-                .filter(Boolean)
-                .join(" "),
-              "aria-label": `${activity.count} contributions on ${activity.date}`,
-            })
-          }
-          renderColorLegend={(block) =>
-            cloneElement(block, {
-              stroke: "var(--activity-border)",
-              strokeWidth: 1,
-            })
-          }
-        />
+      <div ref={calendarFrameRef} className="mt-8 overflow-hidden">
+        <div style={calendarHeight ? { height: `${calendarHeight}px` } : undefined}>
+          <div
+            style={{
+              transform: `scale(${calendarScale})`,
+              transformOrigin: "top left",
+            }}
+          >
+            <div ref={calendarMeasureRef} className="w-max">
+              <ActivityCalendar
+                data={data?.contributions ?? loadingSkeleton}
+                loading={isLoading}
+                colorScheme={theme}
+                theme={activityTheme}
+                blockMargin={4}
+                blockRadius={4}
+                blockSize={12}
+                fontSize={12}
+                showWeekdayLabels={weekdayLabels}
+                weekStart={0}
+                labels={{
+                  totalCount: "{{count}} contributions in the last year",
+                  legend: {
+                    less: "Less",
+                    more: "More",
+                  },
+                }}
+                tooltips={tooltipConfig}
+                style={{
+                  color: "var(--muted)",
+                }}
+                renderBlock={(block, activity) =>
+                  cloneElement(block, {
+                    stroke: "var(--activity-border)",
+                    strokeWidth: 1,
+                    className: [
+                      block.props.className,
+                      "transition-opacity duration-200",
+                    ]
+                      .filter(Boolean)
+                      .join(" "),
+                    "aria-label": `${activity.count} contributions on ${activity.date}`,
+                  })
+                }
+                renderColorLegend={(block) =>
+                  cloneElement(block, {
+                    stroke: "var(--activity-border)",
+                    strokeWidth: 1,
+                  })
+                }
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="mt-6 flex items-center justify-between gap-4">

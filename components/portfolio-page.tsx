@@ -142,6 +142,7 @@ export function PortfolioPage() {
   const [activeSection, setActiveSection] = useState("home");
   const [theme, setTheme] = useState<ThemeMode>("dark");
   const [isThemeReady, setIsThemeReady] = useState(false);
+  const hasScrollableCertifications = certifications.length > 4;
 
   const heroHighlights = useMemo(
     () => [
@@ -421,12 +422,16 @@ export function PortfolioPage() {
             duration: 0.45,
             ease: "power3.out",
           });
-          const scaleTo = gsap.quickTo(element, "scale", {
+          const scaleXTo = gsap.quickTo(element, "scaleX", {
+            duration: 0.45,
+            ease: "power3.out",
+          });
+          const scaleYTo = gsap.quickTo(element, "scaleY", {
             duration: 0.45,
             ease: "power3.out",
           });
 
-          gsap.set(element, { force3D: true });
+          gsap.set(element, { force3D: true, scaleX: 1, scaleY: 1 });
 
           const handleMove = (event: MouseEvent) => {
             const rect = element.getBoundingClientRect();
@@ -435,13 +440,15 @@ export function PortfolioPage() {
 
             xTo(offsetX * strength);
             yTo(offsetY * strength);
-            scaleTo(1.015);
+            scaleXTo(1.015);
+            scaleYTo(1.015);
           };
 
           const handleLeave = () => {
             xTo(0);
             yTo(0);
-            scaleTo(1);
+            scaleXTo(1);
+            scaleYTo(1);
           };
 
           element.addEventListener("mousemove", handleMove);
@@ -450,7 +457,7 @@ export function PortfolioPage() {
           cleanups.push(() => {
             element.removeEventListener("mousemove", handleMove);
             element.removeEventListener("mouseleave", handleLeave);
-            gsap.set(element, { clearProps: "x,y,scale" });
+            gsap.set(element, { clearProps: "x,y,scaleX,scaleY" });
           });
         });
 
@@ -1170,6 +1177,9 @@ export function PortfolioPage() {
                   Education
                 </p>
               </div>
+              <p className="mt-3 text-xs text-[color:var(--muted)]">
+                Click to view certificates
+              </p>
               <div className="mt-6 space-y-4">
                 {educationItems.map((item) => (
                   <div
@@ -1178,9 +1188,20 @@ export function PortfolioPage() {
                     className="theme-surface rounded-2xl p-4"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <h3 className="text-base font-semibold text-[color:var(--foreground-strong)] sm:text-lg">
-                        {item.title}
-                      </h3>
+                      {item.proofUrl ? (
+                        <a
+                          href={item.proofUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-base font-semibold text-[color:var(--foreground-strong)] sm:text-lg"
+                        >
+                          {item.title}
+                        </a>
+                      ) : (
+                        <h3 className="text-base font-semibold text-[color:var(--foreground-strong)] sm:text-lg">
+                          {item.title}
+                        </h3>
+                      )}
                       <span className="theme-pill rounded-full px-3 py-1 text-xs uppercase tracking-[0.18em]">
                         {item.score}
                       </span>
@@ -1200,16 +1221,36 @@ export function PortfolioPage() {
                   Certifications
                 </p>
               </div>
-              <div className="mt-6 space-y-4">
+              <p className="mt-3 text-xs text-[color:var(--muted)]">
+                Click to view certificates
+              </p>
+              <div
+                className={`mt-6 space-y-4 ${
+                  hasScrollableCertifications
+                    ? "max-h-[28rem] overflow-y-auto overscroll-contain pr-1"
+                    : ""
+                }`}
+              >
                 {certifications.map((certificate) => (
                   <div
                     data-detail-card
                     key={certificate.title}
                     className="theme-surface rounded-2xl p-4"
                   >
-                    <h3 className="text-base font-semibold text-[color:var(--foreground-strong)]">
-                      {certificate.title}
-                    </h3>
+                    {certificate.certificateUrl ? (
+                      <a
+                        href={certificate.certificateUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-base font-semibold text-[color:var(--foreground-strong)]"
+                      >
+                        {certificate.title}
+                      </a>
+                    ) : (
+                      <h3 className="text-base font-semibold text-[color:var(--foreground-strong)]">
+                        {certificate.title}
+                      </h3>
+                    )}
                     <p className="mt-2 text-sm text-[color:var(--foreground-soft)]">
                       {certificate.issuer}
                     </p>
