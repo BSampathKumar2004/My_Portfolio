@@ -401,7 +401,7 @@ export const certifications: CertificationItem[] = [
   {
     title: "Web Development",
     issuer: "Internshala",
-    certificateUrl: "Full Stack Web Development with AI Training - Certificate of Completion.pdf"
+    certificateUrl: "/Full Stack Web Development with AI Training - Certificate of Completion.pdf"
   },
   {
     title: "Blockchain Developer",
